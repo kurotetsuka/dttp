@@ -18,7 +18,7 @@ use key::*;
 use self::Class::*;
 
 /// class that defines the types of data carried by a mote
-#[deriving( Copy, Hash)]
+#[deriving( Clone, Copy, Hash)]
 pub enum Class {
 	// text classes
 	Plain,
@@ -56,7 +56,7 @@ impl fmt::Show for Class {
 }
 
 /// a unit of signed communication
-#[deriving( Hash)]
+#[deriving( Clone, Hash)]
 pub struct Mote {
 	// a string describing the data
 	pub meta: String,

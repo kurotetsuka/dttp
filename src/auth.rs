@@ -56,11 +56,17 @@ impl Auth {
 		if cap.len() < 4 { return None;}
 
 		// parse user
-		let user = cap.at( 1).to_string();
+		let user = cap.at( 1);
+		if user.is_none() { return None;}
+		let user = user.unwrap().to_string();
 		// parse email
-		let email = cap.at( 2).to_string();
+		let email = cap.at( 2);
+		if email.is_none() { return None;}
+		let email = email.unwrap().to_string();
 		// parse id
 		let id_str = cap.at( 3);
+		if id_str.is_none() { return None;}
+		let id_str = id_str.unwrap();
 		let id : Option<u32> =
 			num::from_str_radix( id_str, 16);
 		if id.is_none() { return None;}

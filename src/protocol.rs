@@ -43,7 +43,9 @@ impl Command {
 			let cap = cap.unwrap();
 
 			// parse hostname
-			let hostname = cap.at( 1).to_string();
+			let hostname = cap.at( 1);
+			if hostname.is_none() { return None;}
+			let hostname = hostname.unwrap().to_string();
 			// return
 			return Some( Hello( hostname));}
 
@@ -57,6 +59,8 @@ impl Command {
 
 			// parse hash
 			let hash_str = cap.at( 1);
+			if hash_str.is_none() { return None;}
+			let hash_str = hash_str.unwrap();
 			let hash : Option<u64> = 
 				num::from_str_radix( hash_str, 16);
 			if hash.is_none() { return None;}
@@ -74,6 +78,8 @@ impl Command {
 
 			// parse hash
 			let hash_str = cap.at( 1);
+			if hash_str.is_none() { return None;}
+			let hash_str = hash_str.unwrap();
 			let hash : Option<u64> = 
 				num::from_str_radix( hash_str, 16);
 			if hash.is_none() { return None;}
@@ -91,6 +97,8 @@ impl Command {
 
 			// parse hash
 			let hash_str = cap.at( 1);
+			if hash_str.is_none() { return None;}
+			let hash_str = hash_str.unwrap();
 			let hash : Option<u64> = 
 				num::from_str_radix( hash_str, 16);
 			if hash.is_none() { return None;}
@@ -108,6 +116,8 @@ impl Command {
 
 			// parse hash
 			let hash_str = cap.at( 1);
+			if hash_str.is_none() { return None;}
+			let hash_str = hash_str.unwrap();
 			let hash : Option<u64> = 
 				num::from_str_radix( hash_str, 16);
 			if hash.is_none() { return None;}
@@ -125,6 +135,8 @@ impl Command {
 
 			// parse hash
 			let json_str = cap.at( 1);
+			if json_str.is_none() { return None;}
+			let json_str = json_str.unwrap();
 			let json : Option<Json> = 
 				json::from_str( json_str).ok();
 			if json.is_none() { return None;}
@@ -194,6 +206,8 @@ impl Response {
 
 			// parse json
 			let json_str = cap.at( 1);
+			if json_str.is_none() { return None;}
+			let json_str = json_str.unwrap();
 			let json : Option<Json> = 
 				json::from_str( json_str).ok();
 			if json.is_none() { return None;}
@@ -211,7 +225,9 @@ impl Response {
 
 			// parse message
 			let message = cap.at( 1);
-			return Some( ErrorMsg( message.to_string()));}
+			if message.is_none() { return None;}
+			let message = message.unwrap().to_string();
+			return Some( ErrorMsg( message));}
 
 		// fallback
 		return None;}
