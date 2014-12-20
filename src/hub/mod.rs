@@ -26,9 +26,9 @@ pub mod remote;
 
 // constants
 static PUSH_LOG_DECLINE: bool = false;
-static PUSH_PAUSE_SECONDS: i64 = 3;
-static BOOTSTRAP_PAUSE_SECONDS: i64 = 3;
-static GREET_PAUSE_SECONDS: i64 = 3;
+static PUSH_PAUSE_MILLIS: i64 = 400;
+static BOOTSTRAP_PAUSE_MILLIS: i64 = 400;
+static GREET_PAUSE_MILLIS: i64 = 400;
 
 pub struct Hub {
 	// this hub's hostname
@@ -256,7 +256,7 @@ impl Hub {
 			drop( remotedb);
 
 			//wait for a while before polling again
-			sleep( Duration::seconds( BOOTSTRAP_PAUSE_SECONDS));}}
+			sleep( Duration::milliseconds( BOOTSTRAP_PAUSE_MILLIS));}}
 
 	fn push( motedb_arc: Arc<Mutex<Vec<Mote>>>,
 			remotedb_arc: Arc<Mutex<Vec<RemoteHub>>>){
@@ -363,7 +363,7 @@ impl Hub {
 				continue;}
 
 			//wait for a while until polling
-			sleep( Duration::seconds( PUSH_PAUSE_SECONDS));}}
+			sleep( Duration::milliseconds( PUSH_PAUSE_MILLIS));}}
 
 	fn greet( hostname: String, port: u16,
 			remotedb_arc: Arc<Mutex<Vec<RemoteHub>>>){
@@ -424,7 +424,7 @@ impl Hub {
 				continue;}
 
 			//wait for a while until polling
-			sleep( Duration::seconds( GREET_PAUSE_SECONDS));}}
+			sleep( Duration::milliseconds( GREET_PAUSE_MILLIS));}}
 
 	// command handling functions
 
