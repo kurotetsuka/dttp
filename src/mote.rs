@@ -1,24 +1,22 @@
 // library uses
 use std::num;
-use std::collections::TreeMap;
+use std::collections::BTreeMap;
 use std::fmt;
 use std::rand::Rng;
 
-use serialize::base64;
-use serialize::base64::*;
-use serialize::base64::Newline::*;
-use serialize::json;
-use serialize::json::*;
+use rustc_serialize::base64;
+use rustc_serialize::base64::*;
+use rustc_serialize::base64::Newline::*;
+use rustc_serialize::json;
+use rustc_serialize::json::*;
 
 // local uses
 use auth::*;
 use dt::*;
 use key::*;
 
-use self::Class::*;
-
 /// class that defines the types of data carried by a mote
-#[deriving( Clone, Copy, Hash)]
+#[derive( Clone, Copy, Hash)]
 pub enum Class {
 	// text classes
 	Plain,
@@ -35,28 +33,28 @@ pub enum Class {
 impl Class {
 	pub fn from_str( string: &str) -> Option<Class> {
 		match string {
-			"plain" => Some( Plain),
-			"markdown" => Some( Markdown),
-			"json" => Some( Json),
-			"raw" => Some( Raw),
-			"png" => Some( Png),
-			"mp4" => Some( Mp4),
+			"plain" => Some( Class::Plain),
+			"markdown" => Some( Class::Markdown),
+			"json" => Some( Class::Json),
+			"raw" => Some( Class::Raw),
+			"png" => Some( Class::Png),
+			"mp4" => Some( Class::Mp4),
 			_ => None,}}
 }
 impl fmt::Show for Class {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		write!( formatter, "{}",
 			match *self {
-				Plain => "plain",
-				Markdown => "markdown",
-				Json => "json",
-				Raw => "raw",
-				Png => "png",
-				Mp4 => "mp4",})}
+				Class::Plain => "plain",
+				Class::Markdown => "markdown",
+				Class::Json => "json",
+				Class::Raw => "raw",
+				Class::Png => "png",
+				Class::Mp4 => "mp4",})}
 }
 
 /// a unit of signed communication
-#[deriving( Clone, Hash)]
+#[derive( Clone, Hash)]
 pub struct Mote {
 	// a string describing the data
 	pub meta: String,
@@ -78,7 +76,7 @@ impl Mote {
 	pub fn null() -> Mote {
 		Mote {
 			meta: String::new(),
-			class: Raw,
+			class: Class::Raw,
 			auth: Auth::null(),
 			datetime: Datetime::null(),
 			salt: 0x00000000,
@@ -209,8 +207,8 @@ impl fmt::Show for Mote {
 }
 
 /// a mote, prepared for transmittal
-#[deriving( Hash)]
-#[deriving( Encodable, Decodable)]
+#[derive( Hash)]
+#[derive( RustcEncodable, RustcDecodable)]
 pub struct MoteMsg {
 	// a string describing the data
 	pub meta: String,
@@ -229,7 +227,7 @@ pub struct MoteMsg {
 }
 impl ToJson for MoteMsg {
 	fn to_json( &self) -> json::Json {
-		let mut map = TreeMap::new();
+		let mut map = BTreeMap::new();
 		map.insert( "meta".to_string(), self.meta.to_json());
 		map.insert( "class".to_string(), self.class.to_json());
 		map.insert( "auth".to_string(), self.auth.to_json());

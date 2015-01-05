@@ -4,12 +4,15 @@ use std::io::{ Acceptor, BufferedReader, Listener};
 use std::io::net::ip::{ SocketAddr, ToSocketAddr};
 use std::io::net::tcp::{ TcpListener, TcpStream};
 use std::io::timer::sleep;
+use std::str::FromStr;
 use std::sync::{ Arc, Mutex};
+use std::thread::Thread;
+use std::thread::JoinGuard;
 use std::time::duration::Duration;
 
-use serialize::Decodable;
-use serialize::json;
-use serialize::json::{ Json, ToJson};
+use rustc_serialize::Decodable;
+use rustc_serialize::json;
+use rustc_serialize::json::{ Json, ToJson};
 
 // local uses
 //use auth::*;
@@ -49,6 +52,8 @@ pub struct Hub {
 	//pub pub_key: AuthPubKey,
 	// this hub's operation modes
 	//pub modes: HashMap<Mode, bool>,
+	// worker thread guards
+	thread_guards: Vec<JoinGuard<()>>,
 }
 impl Hub {
 	pub fn new( hostname: String, port: u16) -> Hub {
@@ -57,6 +62,7 @@ impl Hub {
 			port: port,
 			motedb: Arc::new( Mutex::new( Vec::new())),
 			remotedb: Arc::new( Mutex::new( Vec::new())),
+			thread_guards: Vec::new(),
 			//modes: HashMap::new(),
 		}}
 
@@ -85,33 +91,37 @@ impl Hub {
 
 	// thread launching functions
 
-	pub fn spawn_server( &self){
+	pub fn spawn_server( &mut self){
 		let port = self.port;
 		let motedb_arc = self.motedb.clone();
 		let remotedb_arc = self.remotedb.clone();
-		spawn( move ||
-			Hub::server( port, motedb_arc, remotedb_arc));
+		self.thread_guards.push(
+			Thread::spawn( move ||
+				Hub::server( port, motedb_arc, remotedb_arc)));
 		println!( "server proc spawned.");}
 
-	pub fn spawn_bootstrap( &self){
+	pub fn spawn_bootstrap( &mut self){
 		let remotedb_arc = self.remotedb.clone();
-		spawn( move ||
-			Hub::bootstrap( remotedb_arc));
+		self.thread_guards.push(
+			Thread::spawn( move ||
+				Hub::bootstrap( remotedb_arc)));
 		println!( "bootstrap proc spawned.");}
 
-	pub fn spawn_push( &self){
+	pub fn spawn_push( &mut self){
 		let motedb_arc = self.motedb.clone();
 		let remotedb_arc = self.remotedb.clone();
-		spawn( move ||
-			Hub::push( motedb_arc, remotedb_arc));
+		self.thread_guards.push(
+			Thread::spawn( move ||
+				Hub::push( motedb_arc, remotedb_arc)));
 		println!( "push proc spawned.");}
 
-	pub fn spawn_greet( &self){
+	pub fn spawn_greet( &mut self){
 		let hostname = self.hostname.clone();
 		let port = self.port;
 		let remotedb_arc = self.remotedb.clone();
-		spawn( move ||
-			Hub::greet( hostname, port, remotedb_arc));
+		self.thread_guards.push(
+			Thread::spawn( move ||
+				Hub::greet( hostname, port, remotedb_arc)));
 		println!( "greet proc spawned.");}
 
 	// thread functions
@@ -131,7 +141,7 @@ impl Hub {
 				let motedb_arc = motedb_arc.clone();
 				let remotedb_arc = remotedb_arc.clone();
 				// spawn client handler
-				spawn( move ||
+				Thread::spawn( move ||
 					Hub::serve( client, motedb_arc, remotedb_arc))}}
 		// close server
 		println!( "[sv] closing listener");
@@ -230,7 +240,7 @@ impl Hub {
 							match *entry {
 								&Json::String( ref string) => {
 									let new_addr : Option<SocketAddr> =
-										from_str( string.as_slice());
+										string.as_slice().to_socket_addr().ok();
 									if new_addr.is_some(){
 										new_remotes.push( new_addr.unwrap());}}
 								_ => ()}}}

@@ -2,8 +2,8 @@
 use std::num;
 use std::fmt;
 
-use serialize::json;
-use serialize::json::Json;
+use rustc_serialize::json;
+use rustc_serialize::json::Json;
 use regex::Regex;
 
 // local uses
@@ -137,8 +137,8 @@ impl Command {
 			let json_str = cap.at( 1);
 			if json_str.is_none() { return None;}
 			let json_str = json_str.unwrap();
-			let json : Option<Json> = 
-				json::from_str( json_str).ok();
+			let json : Result<Json, _> = 
+				Json::from_str( json_str).ok();
 			if json.is_none() { return None;}
 			let json = json.unwrap();
 			// return
@@ -208,8 +208,8 @@ impl Response {
 			let json_str = cap.at( 1);
 			if json_str.is_none() { return None;}
 			let json_str = json_str.unwrap();
-			let json : Option<Json> = 
-				json::from_str( json_str).ok();
+			let json : Result<Json, _> = 
+				Json::from_str( json_str).ok();
 			if json.is_none() { return None;}
 			let json = json.unwrap();
 			// return

@@ -3,11 +3,12 @@
 
 // rustc feature enables
 #![feature(globs)]
+#![feature(old_orphan_check)]
 #![allow(deprecated)]
 
 // library imports
 extern crate regex;
-extern crate serialize;
+extern crate "rustc-serialize" as rustc_serialize;
 extern crate time;
 
 // reexports

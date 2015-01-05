@@ -1,12 +1,13 @@
 // library uses
 use std::num;
+use std::num::ToPrimitive;
 use std::fmt;
 use time::now_utc;
 
 // local uses
 
 /// class that defines a date
-#[deriving( Clone, Copy, Hash)]
+#[derive( Clone, Copy, Hash)]
 pub struct Datetime {
 	pub year: u16,
 	pub day: u16,

@@ -7,7 +7,7 @@ use regex::Regex;
 // local uses
 
 /// class that defines the signing agent of a mote
-#[deriving( Hash)]
+#[derive( Hash)]
 pub struct Auth {
 	pub user: Option<String>,
 	pub comment: Option<String>,

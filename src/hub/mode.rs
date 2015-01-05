@@ -2,9 +2,9 @@
 
 // local uses
 
-#[deriving( PartialEq, Eq)]
-#[deriving( Copy, Hash)]
-#[deriving( Encodable, Decodable)]
+#[derive( PartialEq, Eq)]
+#[derive( Copy, Hash)]
+#[derive( RustcEncodable, RustcDecodable)]
 pub enum Mode {
 	Track,
 	Bootstrap,
