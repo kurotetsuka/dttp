@@ -4,7 +4,6 @@ use std::io::{ Acceptor, BufferedReader, Listener};
 use std::io::net::ip::{ SocketAddr, ToSocketAddr};
 use std::io::net::tcp::{ TcpListener, TcpStream};
 use std::io::timer::sleep;
-use std::str::FromStr;
 use std::sync::{ Arc, Mutex};
 use std::thread::Thread;
 use std::thread::JoinGuard;
@@ -53,7 +52,7 @@ pub struct Hub {
 	// this hub's operation modes
 	//pub modes: HashMap<Mode, bool>,
 	// worker thread guards
-	thread_guards: Vec<JoinGuard<()>>,
+	thread_guards: Arc<Mutex<Vec<JoinGuard<()>>>>,
 }
 impl Hub {
 	pub fn new( hostname: String, port: u16) -> Hub {
@@ -62,7 +61,7 @@ impl Hub {
 			port: port,
 			motedb: Arc::new( Mutex::new( Vec::new())),
 			remotedb: Arc::new( Mutex::new( Vec::new())),
-			thread_guards: Vec::new(),
+			thread_guards: Arc::new( Mutex::new( Vec::new())),
 			//modes: HashMap::new(),
 		}}
 
@@ -71,10 +70,12 @@ impl Hub {
 
 	pub fn add_remote( &mut self, addr: SocketAddr){
 		let remote = RemoteHub::new( addr);
-		self.remotedb.lock().push( remote);}
+		let mut remotedb = self.remotedb.lock().unwrap();
+		remotedb.push( remote);}
 
 	pub fn add_mote( &mut self, mote: Mote){
-		self.motedb.lock().push( mote);}
+		let mut motedb = self.motedb.lock().unwrap();
+		motedb.push( mote);}
 
 	/*pub fn mode_get( &self, mode: &Mode) -> bool {
 		match self.modes.find( mode) {
@@ -83,7 +84,7 @@ impl Hub {
 	pub fn mode_set( &mut self, mode: Mode, enabled: bool) {
 		self.modes.insert( mode, enabled);}*/
 
-	pub fn launch( &self){
+	pub fn launch( &mut self){
 		self.spawn_server();
 		self.spawn_bootstrap();
 		self.spawn_push();
@@ -95,33 +96,41 @@ impl Hub {
 		let port = self.port;
 		let motedb_arc = self.motedb.clone();
 		let remotedb_arc = self.remotedb.clone();
-		self.thread_guards.push(
+		let mut thread_guards = self.thread_guards.lock().unwrap();
+		thread_guards.push(
 			Thread::spawn( move ||
 				Hub::server( port, motedb_arc, remotedb_arc)));
+		drop( thread_guards);
 		println!( "server proc spawned.");}
 
 	pub fn spawn_bootstrap( &mut self){
 		let remotedb_arc = self.remotedb.clone();
-		self.thread_guards.push(
+		let mut thread_guards = self.thread_guards.lock().unwrap();
+		thread_guards.push(
 			Thread::spawn( move ||
 				Hub::bootstrap( remotedb_arc)));
+		drop( thread_guards);
 		println!( "bootstrap proc spawned.");}
 
 	pub fn spawn_push( &mut self){
 		let motedb_arc = self.motedb.clone();
 		let remotedb_arc = self.remotedb.clone();
-		self.thread_guards.push(
+		let mut thread_guards = self.thread_guards.lock().unwrap();
+		thread_guards.push(
 			Thread::spawn( move ||
 				Hub::push( motedb_arc, remotedb_arc)));
+		drop( thread_guards);
 		println!( "push proc spawned.");}
 
 	pub fn spawn_greet( &mut self){
 		let hostname = self.hostname.clone();
 		let port = self.port;
 		let remotedb_arc = self.remotedb.clone();
-		self.thread_guards.push(
+		let mut thread_guards = self.thread_guards.lock().unwrap();
+		thread_guards.push(
 			Thread::spawn( move ||
 				Hub::greet( hostname, port, remotedb_arc)));
+		drop( thread_guards);
 		println!( "greet proc spawned.");}
 
 	// thread functions
@@ -142,7 +151,7 @@ impl Hub {
 				let remotedb_arc = remotedb_arc.clone();
 				// spawn client handler
 				Thread::spawn( move ||
-					Hub::serve( client, motedb_arc, remotedb_arc))}}
+					Hub::serve( client, motedb_arc, remotedb_arc)).detach()}}
 		// close server
 		println!( "[sv] closing listener");
 		drop( acceptor);}
@@ -193,9 +202,9 @@ impl Hub {
 		let others_req_msg = OthersReq.to_string();
 		loop {
 			// copy addresses from current remotedb
-			let remotedb = remotedb_arc.lock();
+			let remotedb = remotedb_arc.lock().unwrap();
 			let mut remotes_addr : Vec<SocketAddr> = Vec::new();
-			for ref remote in remotedb.deref().iter() {
+			for ref remote in remotedb.iter() {
 				remotes_addr.push( remote.addr.clone());}
 			drop( remotedb);
 
@@ -254,7 +263,7 @@ impl Hub {
 				continue;}
 
 			//write new remotes to db
-			let mut remotedb = remotedb_arc.lock();
+			let mut remotedb = remotedb_arc.lock().unwrap();
 			//let size = remotedb.len();
 			for &new_addr in new_remotes.iter() {
 				let new_remote = RemoteHub::new( new_addr.clone());
@@ -272,15 +281,15 @@ impl Hub {
 			remotedb_arc: Arc<Mutex<Vec<RemoteHub>>>){
 		loop {
 			// copy addresses from current remotedb
-			let remotedb = remotedb_arc.lock();
+			let remotedb = remotedb_arc.lock().unwrap();
 			let mut remotes_addr : Vec<SocketAddr> = Vec::new();
-			for ref remote in remotedb.deref().iter() {
+			for ref remote in remotedb.iter() {
 				remotes_addr.push( remote.addr.clone());}
 			drop( remotedb);
 			//println!( "[ps] remote addrs: {}", remotes_addr);
 
 			// copy motedb from current motedb
-			let motedb = motedb_arc.lock();
+			let motedb = motedb_arc.lock().unwrap();
 			let motedb_copy = motedb.clone();
 			drop( motedb);
 			let motedb = motedb_copy;
@@ -381,9 +390,9 @@ impl Hub {
 			format!( "{}:{}", hostname, port)).to_string();
 		loop {
 			// copy addresses from current remotedb
-			let remotedb = remotedb_arc.lock();
+			let remotedb = remotedb_arc.lock().unwrap();
 			let mut remotes_addr : Vec<SocketAddr> = Vec::new();
-			for ref remote in remotedb.deref().iter() {
+			for ref remote in remotedb.iter() {
 				remotes_addr.push( remote.addr.clone());}
 			drop( remotedb);
 
@@ -444,7 +453,7 @@ impl Hub {
 		if addr.is_none() { return Error;}
 		let addr = addr.unwrap();
 		let new_remote = RemoteHub::new( addr);
-		let mut remotedb = remotedb_arc.lock();
+		let mut remotedb = remotedb_arc.lock().unwrap();
 		if ! remotedb.as_slice().contains( &new_remote) {
 			println!("[sv] greeted remote: {}", addr);
 			remotedb.push( new_remote);}
@@ -453,7 +462,7 @@ impl Hub {
 
 	fn get_others(
 			remotedb_arc: &Arc<Mutex<Vec<RemoteHub>>>) -> Response {
-		let remotedb = remotedb_arc.lock();
+		let remotedb = remotedb_arc.lock().unwrap();
 		let mut list : Vec<Json> = Vec::new();
 		// push the addr of every remote we know of
 		for remote in remotedb.iter() {
@@ -463,7 +472,7 @@ impl Hub {
 
 	fn have_mote(
 			motedb_arc: &Arc<Mutex<Vec<Mote>>>, hash: u64) -> Response {
-		let motedb = motedb_arc.lock();
+		let motedb = motedb_arc.lock().unwrap();
 		let mut response = Deny;
 		for mote in motedb.iter() {
 			if hash == hash::hash( mote) {
@@ -474,7 +483,7 @@ impl Hub {
 
 	fn get_mote(
 			motedb_arc: &Arc<Mutex<Vec<Mote>>>, hash: u64) -> Response {
-		let motedb = motedb_arc.lock();
+		let motedb = motedb_arc.lock().unwrap();
 		let mut response = Deny;
 		for mote in motedb.iter() {
 			if hash == hash::hash( mote) {
@@ -486,7 +495,7 @@ impl Hub {
 
 	fn want_mote(
 			motedb_arc: &Arc<Mutex<Vec<Mote>>>, hash: u64) -> Response {
-		let motedb = motedb_arc.lock();
+		let motedb = motedb_arc.lock().unwrap();
 		let mut response = Affirm;
 		for mote in motedb.iter() {
 			if hash == hash::hash( mote) {
@@ -508,7 +517,7 @@ impl Hub {
 		let mote_hash = hash::hash( &mote);
 		println!("[sv] received new mote: {:016x} :: {}", mote_hash, mote);
 
-		let mut motedb = motedb_arc.lock();
+		let mut motedb = motedb_arc.lock().unwrap();
 		motedb.push( mote);
 		drop( motedb);
 		Okay}

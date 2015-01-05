@@ -137,7 +137,7 @@ impl Command {
 			let json_str = cap.at( 1);
 			if json_str.is_none() { return None;}
 			let json_str = json_str.unwrap();
-			let json : Result<Json, _> = 
+			let json : Option<Json> = 
 				Json::from_str( json_str).ok();
 			if json.is_none() { return None;}
 			let json = json.unwrap();
@@ -208,7 +208,7 @@ impl Response {
 			let json_str = cap.at( 1);
 			if json_str.is_none() { return None;}
 			let json_str = json_str.unwrap();
-			let json : Result<Json, _> = 
+			let json : Option<Json> = 
 				Json::from_str( json_str).ok();
 			if json.is_none() { return None;}
 			let json = json.unwrap();
