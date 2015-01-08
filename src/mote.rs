@@ -207,8 +207,7 @@ impl fmt::Show for Mote {
 }
 
 /// a mote, prepared for transmittal
-#[derive( Hash)]
-#[derive( RustcEncodable, RustcDecodable)]
+#[derive( Hash, RustcEncodable, RustcDecodable)]
 pub struct MoteMsg {
 	// a string describing the data
 	pub meta: String,

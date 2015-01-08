@@ -2,8 +2,6 @@
 #![crate_type="lib"]
 
 // rustc feature enables
-#![feature(globs)]
-#![feature(old_orphan_check)]
 #![allow(deprecated)]
 
 // library imports
