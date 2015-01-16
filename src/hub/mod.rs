@@ -34,7 +34,7 @@ pub mod remote;
 //static BOOTSTRAP_PAUSE_MILLIS: i64 = 400;
 //static GREET_PAUSE_MILLIS: i64 = 400;
 
-#[derive( PartialEq, Eq, Copy, Hash, RustcEncodable, RustcDecodable)]
+#[derive( PartialEq, Eq, Copy, Hash)]
 pub enum Mode {
 	Track,
 	Bootstrap,
@@ -43,18 +43,18 @@ pub enum Mode {
 	Serve,
 }
 
-#[derive( PartialEq, Eq, Copy, Hash, RustcEncodable, RustcDecodable)]
+#[derive( PartialEq, Eq, Copy, Hash)]
 pub enum ControlMsg {
 	Stop,
 }
 
 pub struct Hub {
 	// this hub's authorizing party
-	pub auth: Auth,
+	pub auth: Arc<Mutex<Auth>>,
 	// this hub's hostname
-	pub hostname: String,
+	pub hostname: Arc<Mutex<String>>,
 	// this hub's port
-	pub port: u16,
+	pub port: Arc<Mutex<u16>>,
 	// this hub's stored motes
 	pub motedb: Arc<Mutex<Vec<Mote>>>,
 	// this hub's auth-key database
@@ -78,9 +78,9 @@ impl Hub {
 		workers.insert( Mode::Serve, Vec::new());
 
 		Hub {
-			auth: auth,
-			hostname: hostname,
-			port: port,
+			auth: Arc::new( Mutex::new( auth)),
+			hostname: Arc::new( Mutex::new( hostname)),
+			port: Arc::new( Mutex::new( port)),
 			motedb: Arc::new( Mutex::new( Vec::new())),
 			remotedb: Arc::new( Mutex::new( Vec::new())),
 			workers: workers,}}
