@@ -75,7 +75,7 @@ impl Auth {
 		Some( Auth::new(
 			Some( user), None, Some( email), Some( id)))}
 }
-impl fmt::Show for Auth {
+impl fmt::String for Auth {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		let self_tuple = (
 			self.user.as_ref(), self.comment.as_ref(),

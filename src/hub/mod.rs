@@ -1,4 +1,5 @@
 // library uses
+use std::any::Any;
 use std::collections::HashMap;
 //use std::hash;
 //use std::io::{ Acceptor, BufferedReader, Listener};
@@ -129,6 +130,6 @@ impl WorkerControl {
 	pub fn stop( &mut self){
 		self.control.send( ControlMsg::Stop).ok();}
 
-	pub fn join( &self){
+	pub fn join( self) -> Result<(), Box<Any + Send>> {
 		self.guard.join()}
 }

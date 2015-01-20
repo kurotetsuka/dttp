@@ -22,5 +22,5 @@ impl PartialEq for RemoteHub {
 }
 impl fmt::Show for RemoteHub {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
-		write!( formatter, "(remote {} {})", self.addr, self.motedb)}
+		write!( formatter, "(remote {} {:?})", self.addr, self.motedb)}
 }

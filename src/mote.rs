@@ -41,7 +41,7 @@ impl Class {
 			"mp4" => Some( Class::Mp4),
 			_ => None,}}
 }
-impl fmt::Show for Class {
+impl fmt::String for Class {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		write!( formatter, "{}",
 			match *self {

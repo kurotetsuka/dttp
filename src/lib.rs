@@ -2,7 +2,7 @@
 #![crate_type="lib"]
 
 // rustc feature enables
-#![allow(deprecated)]
+#![allow(unstable)]
 
 // library imports
 extern crate regex;

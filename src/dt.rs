@@ -86,7 +86,7 @@ impl Datetime {
 		return result;}
 }
 
-impl fmt::Show for Datetime {
+impl fmt::String for Datetime {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		write!( formatter, "{:03x}.{:03x}.{:07x}",
 			self.year, self.day, self.milli)}

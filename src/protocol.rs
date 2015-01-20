@@ -147,7 +147,7 @@ impl Command {
 		// fallback
 		return None;}
 }
-impl fmt::Show for Command {
+impl fmt::String for Command {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			&Hello( ref hostname) =>
@@ -232,7 +232,7 @@ impl Response {
 		// fallback
 		return None;}
 }
-impl fmt::Show for Response {
+impl fmt::String for Response {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			&Okay =>
