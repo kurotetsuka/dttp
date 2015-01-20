@@ -115,7 +115,7 @@ impl Clone for Hub {
 
 pub struct WorkerControl {
 	pub mode: Mode,
-	pub guard: JoinGuard<()>,
+	pub guard: JoinGuard<'static, ()>,
 	pub control: Sender<ControlMsg>,
 }
 impl WorkerControl {
@@ -129,6 +129,6 @@ impl WorkerControl {
 	pub fn stop( &mut self){
 		self.control.send( ControlMsg::Stop).ok();}
 
-/*	pub fn join( &self){
-		self.guard.join()}*/
+	pub fn join( &self){
+		self.guard.join()}
 }
