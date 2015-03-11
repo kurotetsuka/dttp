@@ -2,11 +2,15 @@
 #![crate_type="lib"]
 
 // rustc feature enables
-#![allow(unstable)]
+#![feature(collections)]
+#![feature(core)]
+#![feature(net)]
 
 // library imports
 extern crate regex;
 extern crate "rustc-serialize" as rustc_serialize;
+//extern crate serialize;
+extern crate rand;
 extern crate time;
 
 // reexports

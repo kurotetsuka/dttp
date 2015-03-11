@@ -1,6 +1,6 @@
 // library uses
 //use std::fmt;
-use std::rand::Rng;
+use rand::Rng;
 
 // local uses
 //use asdf;

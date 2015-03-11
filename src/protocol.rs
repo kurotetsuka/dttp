@@ -62,7 +62,7 @@ impl Command {
 			if hash_str.is_none() { return None;}
 			let hash_str = hash_str.unwrap();
 			let hash : Option<u64> = 
-				num::from_str_radix( hash_str, 16);
+				num::from_str_radix( hash_str, 16).ok();
 			if hash.is_none() { return None;}
 			let hash = hash.unwrap();
 			// return
@@ -81,7 +81,7 @@ impl Command {
 			if hash_str.is_none() { return None;}
 			let hash_str = hash_str.unwrap();
 			let hash : Option<u64> = 
-				num::from_str_radix( hash_str, 16);
+				num::from_str_radix( hash_str, 16).ok();
 			if hash.is_none() { return None;}
 			let hash = hash.unwrap();
 			// return
@@ -100,7 +100,7 @@ impl Command {
 			if hash_str.is_none() { return None;}
 			let hash_str = hash_str.unwrap();
 			let hash : Option<u64> = 
-				num::from_str_radix( hash_str, 16);
+				num::from_str_radix( hash_str, 16).ok();
 			if hash.is_none() { return None;}
 			let hash = hash.unwrap();
 			// return
@@ -119,7 +119,7 @@ impl Command {
 			if hash_str.is_none() { return None;}
 			let hash_str = hash_str.unwrap();
 			let hash : Option<u64> = 
-				num::from_str_radix( hash_str, 16);
+				num::from_str_radix( hash_str, 16).ok();
 			if hash.is_none() { return None;}
 			let hash = hash.unwrap();
 			// return
@@ -147,7 +147,7 @@ impl Command {
 		// fallback
 		return None;}
 }
-impl fmt::String for Command {
+impl fmt::Display for Command {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			&Hello( ref hostname) =>
@@ -163,7 +163,8 @@ impl fmt::String for Command {
 			&WantReq( ref hash) =>
 				write!( formatter, "want?:{:016x}.", *hash),
 			&Take( ref data) =>
-				write!( formatter, "take:{}.", json::encode( data)),}}
+				write!( formatter, "take:{}.",
+					json::encode( data).unwrap()),}}
 }
 
 pub enum Response {
@@ -232,13 +233,14 @@ impl Response {
 		// fallback
 		return None;}
 }
-impl fmt::String for Response {
+impl fmt::Display for Response {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			&Okay =>
 				write!( formatter, "ok."),
 			&OkayResult( ref data) =>
-				write!( formatter, "ok:{}.", json::encode( data)),
+				write!( formatter, "ok:{}.",
+					json::encode( data).unwrap()),
 			&Affirm =>
 				write!( formatter, "yes."),
 			&Deny =>

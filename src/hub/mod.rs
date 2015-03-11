@@ -1,9 +1,8 @@
 // library uses
-use std::any::Any;
 use std::collections::HashMap;
 //use std::hash;
 //use std::io::{ Acceptor, BufferedReader, Listener};
-use std::io::net::ip::SocketAddr;
+use std::net::SocketAddr;
 //use std::io::net::ip::{ SocketAddr, ToSocketAddr};
 //use std::io::net::tcp::{ TcpListener, TcpStream};
 //use std::io::timer::sleep;
@@ -120,7 +119,7 @@ pub struct WorkerControl {
 	pub control: Sender<ControlMsg>,
 }
 impl WorkerControl {
-	pub fn new( mode: Mode, guard: JoinGuard<()>,
+	pub fn new( mode: Mode, guard: JoinGuard<'static, ()>,
 			control: Sender<ControlMsg>) -> WorkerControl {
 		WorkerControl {
 			mode: mode,
@@ -130,6 +129,6 @@ impl WorkerControl {
 	pub fn stop( &mut self){
 		self.control.send( ControlMsg::Stop).ok();}
 
-	pub fn join( self) -> Result<(), Box<Any + Send>> {
-		self.guard.join()}
+	pub fn join( self){
+		self.guard.join();}
 }

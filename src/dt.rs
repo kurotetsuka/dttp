@@ -49,7 +49,7 @@ impl Datetime {
 		if year_str.is_none() { return None;}
 		let year_str = year_str.unwrap();
 		let year : Option<u16> =
-			num::from_str_radix( year_str, 16);
+			num::from_str_radix( year_str, 16).ok();
 		if year.is_none() { return None;}
 		let year = year.unwrap();
 
@@ -58,7 +58,7 @@ impl Datetime {
 		if day_str.is_none() { return None;}
 		let day_str = day_str.unwrap();
 		let day : Option<u16> =
-			num::from_str_radix( day_str, 16);
+			num::from_str_radix( day_str, 16).ok();
 		if day.is_none() { return None;}
 		let day = day.unwrap();
 
@@ -67,7 +67,7 @@ impl Datetime {
 		if milli_str.is_none() { return None;}
 		let milli_str = milli_str.unwrap();
 		let milli : Option<u32> =
-			num::from_str_radix( milli_str, 16);
+			num::from_str_radix( milli_str, 16).ok();
 		if milli.is_none() { return None;}
 		let milli = milli.unwrap();
 
@@ -86,7 +86,7 @@ impl Datetime {
 		return result;}
 }
 
-impl fmt::String for Datetime {
+impl fmt::Display for Datetime {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		write!( formatter, "{:03x}.{:03x}.{:07x}",
 			self.year, self.day, self.milli)}

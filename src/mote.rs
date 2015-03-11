@@ -2,7 +2,8 @@
 use std::num;
 use std::collections::BTreeMap;
 use std::fmt;
-use std::rand::Rng;
+
+use rand::Rng;
 
 use rustc_serialize::base64;
 use rustc_serialize::base64::*;
@@ -41,7 +42,7 @@ impl Class {
 			"mp4" => Some( Class::Mp4),
 			_ => None,}}
 }
-impl fmt::String for Class {
+impl fmt::Display for Class {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		write!( formatter, "{}",
 			match *self {
@@ -129,7 +130,8 @@ impl Mote {
 		let datetime = datetime.unwrap();
 
 		// parse salt
-		let salt: Option<u64> = num::from_str_radix( msg.salt.as_slice(), 16);
+		let salt: Option<u64> =
+			num::from_str_radix( msg.salt.as_slice(), 16).ok();
 		if salt.is_none() { return None;}
 		let salt = salt.unwrap();
 
@@ -191,7 +193,7 @@ impl Mote {
 			sig: self.sig.as_slice().to_base64( b64_config),}}
 }
 
-impl fmt::Show for Mote {
+impl fmt::Display for Mote {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		let b64_config = base64::Config {
 			char_set: Standard,

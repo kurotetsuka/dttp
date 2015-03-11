@@ -68,14 +68,14 @@ impl Auth {
 		if id_str.is_none() { return None;}
 		let id_str = id_str.unwrap();
 		let id : Option<u32> =
-			num::from_str_radix( id_str, 16);
+			num::from_str_radix( id_str, 16).ok();
 		if id.is_none() { return None;}
 		let id = id.unwrap();
 
 		Some( Auth::new(
 			Some( user), None, Some( email), Some( id)))}
 }
-impl fmt::String for Auth {
+impl fmt::Display for Auth {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		let self_tuple = (
 			self.user.as_ref(), self.comment.as_ref(),

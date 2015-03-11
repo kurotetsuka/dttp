@@ -1,5 +1,5 @@
 // library uses
-use std::io::net::ip::SocketAddr;
+use std::net::SocketAddr;
 use std::fmt;
 
 // local uses
@@ -20,7 +20,7 @@ impl PartialEq for RemoteHub {
 	fn ne( &self, other: &RemoteHub) -> bool {
 		self.addr.ne( &other.addr)}
 }
-impl fmt::Show for RemoteHub {
+impl fmt::Display for RemoteHub {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		write!( formatter, "(remote {} {:?})", self.addr, self.motedb)}
 }
