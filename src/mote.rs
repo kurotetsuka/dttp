@@ -115,35 +115,35 @@ impl Mote {
 
 	pub fn from_msg( msg: &MoteMsg) ->Option<Mote> {
 		// parse class
-		let class = Class::from_str( msg.class.as_slice());
+		let class = Class::from_str( msg.class.as_ref());
 		if class.is_none() { return None;}
 		let class = class.unwrap();
 
 		// parse auth
-		let auth = Auth::from_str( msg.auth.as_slice());
+		let auth = Auth::from_str( msg.auth.as_ref());
 		if auth.is_none() { return None;}
 		let auth = auth.unwrap();
 
 		// parse datetime
-		let datetime = Datetime::from_str( msg.datetime.as_slice());
+		let datetime = Datetime::from_str( msg.datetime.as_ref());
 		if datetime.is_none() { return None;}
 		let datetime = datetime.unwrap();
 
 		// parse salt
 		let salt: Option<u64> =
-			num::from_str_radix( msg.salt.as_slice(), 16).ok();
+			num::from_str_radix( msg.salt.as_ref(), 16).ok();
 		if salt.is_none() { return None;}
 		let salt = salt.unwrap();
 
 		// parse data
 		let data : Option<Vec<u8>> =
-			msg.data.as_slice().from_base64().ok();
+			msg.data.from_base64().ok();
 		if data.is_none() { return None;}
 		let data = data.unwrap();
 
 		// parse sig
 		let sig : Option<Vec<u8>> =
-			msg.sig.as_slice().from_base64().ok();
+			msg.sig.from_base64().ok();
 		if sig.is_none() { return None;}
 		let sig = sig.unwrap();
 
@@ -165,17 +165,17 @@ impl Mote {
 		//generate plainbytes to sign
 		let mut plain : Vec<u8> = Vec::new();
 		//push meta bytes
-		plain.push_all( self.meta.as_slice().as_bytes());
+		plain.push_all( self.meta.as_bytes());
 		//push datetime bytes
-		plain.push_all( self.datetime.to_bytes().as_slice());
+		plain.push_all( self.datetime.to_bytes().as_ref());
 		//push data bytes
-		plain.push_all( self.data.as_slice());
+		plain.push_all( self.data.as_ref());
 		//push salt
 		for &offset in [ 56, 48, 40, 32, 24, 16, 08, 00].iter() {
 			plain.push( ( self.salt >> offset) as u8);}
 		//set signature fields
 		self.auth = ( *auth).clone();
-		self.sig = key.sign( plain.as_slice());}
+		self.sig = key.sign( plain.as_ref());}
 
 	pub fn to_msg( &self) -> MoteMsg {
 		let b64_config = base64::Config {
@@ -189,8 +189,8 @@ impl Mote {
 			auth: self.auth.to_string(),
 			datetime: self.datetime.to_string(),
 			salt: format!( "{:08x}", self.salt),
-			data: self.data.as_slice().to_base64( b64_config),
-			sig: self.sig.as_slice().to_base64( b64_config),}}
+			data: self.data.to_base64( b64_config),
+			sig: self.sig.to_base64( b64_config),}}
 }
 
 impl fmt::Display for Mote {
@@ -204,8 +204,8 @@ impl fmt::Display for Mote {
 			"[\"{}\", {}, \"{}\", {}, {:08x}, {}, {}]",
 			self.meta, self.class, self.auth,
 			self.datetime, self.salt,
-			self.data.as_slice().to_base64( b64_config),
-			self.sig.as_slice().to_base64( b64_config),)}
+			self.data.to_base64( b64_config),
+			self.sig.to_base64( b64_config),)}
 }
 
 /// a mote, prepared for transmittal

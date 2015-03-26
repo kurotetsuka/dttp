@@ -3,13 +3,13 @@
 
 // rustc feature enables
 #![feature(collections)]
+#![feature(convert)]
 #![feature(core)]
-#![feature(net)]
+//#![feature(net)]
 
 // library imports
 extern crate regex;
-extern crate "rustc-serialize" as rustc_serialize;
-//extern crate serialize;
+extern crate rustc_serialize;
 extern crate rand;
 extern crate time;
 
