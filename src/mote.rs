@@ -77,7 +77,7 @@ impl Mote {
 	// constructors
 	pub fn null() -> Mote {
 		Mote {
-			dttpv: String::from( DTTPV),
+			dttpv: DTTPV.to_string(),
 			meta: String::new(),
 			class: Class::Raw,
 			auth: Auth::null(),
@@ -88,7 +88,7 @@ impl Mote {
 			meta: String, class: Class,
 			datetime: Datetime, data: Vec<u8>) -> Mote {
 		Mote {
-			dttpv: String::from( DTTPV),
+			dttpv: DTTPV.to_string(),
 			meta: meta,
 			class: class,
 			auth: Auth::null(),
@@ -99,7 +99,7 @@ impl Mote {
 			meta: String, class: Class,
 			datetime: Datetime, data: String) -> Mote {
 		Mote {
-			dttpv: String::from( DTTPV),
+			dttpv: DTTPV.to_string(),
 			meta: meta,
 			class: class,
 			auth: Auth::null(),
@@ -190,9 +190,9 @@ impl fmt::Display for Mote {
 			pad: true,
 			line_length: None };
 		write!( formatter,
-			"[\"{}\", {}, \"{}\", {}, {}, {}]",
-			self.meta, self.class, self.auth,
-			self.datetime,
+			"[dttpv-{}, \"{}\", {}, \"{}\", {}, {}, {}]",
+			self.dttpv, self.meta, self.class,
+			self.auth, self.datetime,
 			self.data.to_base64( b64_config),
 			self.sig.to_base64( b64_config),)}
 }

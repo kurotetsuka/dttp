@@ -45,7 +45,7 @@ impl Auth {
 	pub fn from_str( string: &str) -> Option<Auth> {
 		// regex with user, email, and key
 		let regex = Regex::new(
-			r"([:ascii:]+) <(\S+@\S+)> :: ([:xdigit:]{8})");
+			r"([:ascii:]+) <(\S+@\S+)> (\[[:xdigit:]{8}\])");
 		if regex.is_err() { return None;}
 		let regex = regex.unwrap();
 
@@ -83,7 +83,7 @@ impl fmt::Display for Auth {
 		match self_tuple {
 			( Some( user), Some( comment), Some( email), Some( &id)) =>
 				write!( formatter,
-					"{} ({}) <{}> :: {:08x}",
+					"{} ({}) <{}> [{:08x}]",
 					user, comment, email, id),
 			( Some( user), Some( comment), Some( email), None) =>
 				write!( formatter,
@@ -91,7 +91,7 @@ impl fmt::Display for Auth {
 					user, comment, email),
 			( Some( user), Some( comment), None, Some( &id)) =>
 				write!( formatter,
-					"{} ({}) :: {:08x}",
+					"{} ({}) [{:08x}]",
 					user, comment, id),
 			( Some( user), Some( comment), None, None) =>
 				write!( formatter,
@@ -99,7 +99,7 @@ impl fmt::Display for Auth {
 					user, comment),
 			( Some( user), None, Some( email), Some( &id)) =>
 				write!( formatter,
-					"{} <{}> :: {:08x}",
+					"{} <{}> [{:08x}]",
 					user, email, id),
 			( Some( user), None, Some( email), None) =>
 				write!( formatter,
@@ -107,7 +107,7 @@ impl fmt::Display for Auth {
 					user, email),
 			( Some( user), None, None, Some( &id)) =>
 				write!( formatter,
-					"{} :: {:08x}",
+					"{} [{:08x}]",
 					user, id),
 			( Some( user), None, None, None) =>
 				write!( formatter,
@@ -115,7 +115,7 @@ impl fmt::Display for Auth {
 					user),
 			( None, Some( comment), Some( email), Some( &id)) =>
 				write!( formatter,
-					"({}) <{}> :: {:08x}",
+					"({}) <{}> [{:08x}]",
 					comment, email, id),
 			( None, Some( comment), Some( email), None) =>
 				write!( formatter,
@@ -123,7 +123,7 @@ impl fmt::Display for Auth {
 					comment, email),
 			( None, Some( comment), None, Some( &id)) =>
 				write!( formatter,
-					"({}) :: {:08x}",
+					"({}) [{:08x}]",
 					comment, id),
 			( None, Some( comment), None, None) =>
 				write!( formatter,
@@ -131,7 +131,7 @@ impl fmt::Display for Auth {
 					comment),
 			( None, None, Some( email), Some( &id)) =>
 				write!( formatter,
-					"<{}> :: {:08x}",
+					"<{}> [{:08x}]",
 					email, id),
 			( None, None, Some( email), None) =>
 				write!( formatter,
@@ -139,7 +139,7 @@ impl fmt::Display for Auth {
 					email),
 			( None, None, None, Some( &id)) =>
 				write!( formatter,
-					":: {:08x}",
+					"[{:08x}]",
 					id),
 			( None, None, None, None) =>
 				write!( formatter, ":null:"),}}
