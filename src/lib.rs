@@ -5,7 +5,6 @@
 #![feature(collections)]
 #![feature(convert)]
 #![feature(core)]
-//#![feature(net)]
 
 // library imports
 extern crate regex;
@@ -15,6 +14,7 @@ extern crate time;
 
 // reexports
 pub use auth::Auth;
+pub use consts::DTTPV;
 pub use dt::Datetime;
 pub use hub::Hub;
 pub use hub::remote::RemoteHub;
@@ -24,6 +24,7 @@ pub use mote::Mote;
 
 // modules
 pub mod auth;
+pub mod consts;
 pub mod dt;
 pub mod hub;
 pub mod key;
