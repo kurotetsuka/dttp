@@ -34,7 +34,7 @@ pub mod remote;
 //static BOOTSTRAP_PAUSE_MILLIS: i64 = 400;
 //static GREET_PAUSE_MILLIS: i64 = 400;
 
-#[derive( PartialEq, Eq, Copy, Hash)]
+#[derive( PartialEq, Eq, Clone, Copy, Hash)]
 pub enum Mode {
 	Track,
 	Bootstrap,
@@ -43,7 +43,7 @@ pub enum Mode {
 	Serve,
 }
 
-#[derive( PartialEq, Eq, Copy, Hash)]
+#[derive( PartialEq, Eq, Clone, Copy, Hash)]
 pub enum ControlMsg {
 	Stop,
 }

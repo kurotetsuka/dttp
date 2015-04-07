@@ -1,5 +1,4 @@
 // library uses
-use std::num;
 use std::num::ToPrimitive;
 use std::fmt;
 use time::now_utc;
@@ -49,7 +48,7 @@ impl Datetime {
 		if year_str.is_none() { return None;}
 		let year_str = year_str.unwrap();
 		let year : Option<u16> =
-			num::from_str_radix( year_str, 16).ok();
+			u16::from_str_radix( year_str, 16).ok();
 		if year.is_none() { return None;}
 		let year = year.unwrap();
 
@@ -58,7 +57,7 @@ impl Datetime {
 		if day_str.is_none() { return None;}
 		let day_str = day_str.unwrap();
 		let day : Option<u16> =
-			num::from_str_radix( day_str, 16).ok();
+			u16::from_str_radix( day_str, 16).ok();
 		if day.is_none() { return None;}
 		let day = day.unwrap();
 
@@ -67,7 +66,7 @@ impl Datetime {
 		if milli_str.is_none() { return None;}
 		let milli_str = milli_str.unwrap();
 		let milli : Option<u32> =
-			num::from_str_radix( milli_str, 16).ok();
+			u32::from_str_radix( milli_str, 16).ok();
 		if milli.is_none() { return None;}
 		let milli = milli.unwrap();
 

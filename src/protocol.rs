@@ -1,5 +1,4 @@
 // library uses
-use std::num;
 use std::fmt;
 
 use rustc_serialize::json;
@@ -10,44 +9,54 @@ use regex::Regex;
 use self::Command::*;
 use self::Response::*;
 
-/*
+
 pub enum MoteSpec {
 	ShortHash( u8),
 	LongHash( u64),
 	Meta( String),
-	Auth( Auth),
-}*/
+	Auth( String),
+}
 
 pub enum Command {
 	Hello( String),
-	OthersReq,
 	HaveDec( u64),
 	HaveReq( u64),
 	Get( u64),
+	Fetch( u64),
+	OthersReq,
 	WantReq( u64),
 	Take( Json),
 }
+
+pub enum Response {
+	Okay,
+	OkayResult( Json),
+	Affirm,
+	Deny,
+	Error,
+	ErrorMsg( String),
+}
+
 impl Command {
 	pub fn from_str( string: &str) -> Option<Command> {
-		// match others request
-		let cmd = "others?";
-		if string.eq( cmd) {
-			return Some( OthersReq);}
-
-		// match hello command
-		let cmd = "hi:";
+		// match get request
+		let cmd = "get?:";
 		if string.starts_with( cmd) {
-			let regex = Regex::new( r"hi:(.+:.+).").unwrap();
+			let regex = Regex::new( r"get\?:([:xdigit:]{16}).").unwrap();
 			let cap = regex.captures( string);
 			if cap.is_none() { return None;}
 			let cap = cap.unwrap();
 
-			// parse hostname
-			let hostname = cap.at( 1);
-			if hostname.is_none() { return None;}
-			let hostname = hostname.unwrap().to_string();
+			// parse hash
+			let hash_str = cap.at( 1);
+			if hash_str.is_none() { return None;}
+			let hash_str = hash_str.unwrap();
+			let hash : Option<u64> = 
+				u64::from_str_radix( hash_str, 16).ok();
+			if hash.is_none() { return None;}
+			let hash = hash.unwrap();
 			// return
-			return Some( Hello( hostname));}
+			return Some( Get( hash));}
 
 		// match have command
 		let cmd = "have:";
@@ -62,7 +71,7 @@ impl Command {
 			if hash_str.is_none() { return None;}
 			let hash_str = hash_str.unwrap();
 			let hash : Option<u64> = 
-				num::from_str_radix( hash_str, 16).ok();
+				u64::from_str_radix( hash_str, 16).ok();
 			if hash.is_none() { return None;}
 			let hash = hash.unwrap();
 			// return
@@ -81,49 +90,31 @@ impl Command {
 			if hash_str.is_none() { return None;}
 			let hash_str = hash_str.unwrap();
 			let hash : Option<u64> = 
-				num::from_str_radix( hash_str, 16).ok();
+				u64::from_str_radix( hash_str, 16).ok();
 			if hash.is_none() { return None;}
 			let hash = hash.unwrap();
 			// return
 			return Some( HaveReq( hash));}
 
-		// match get request
-		let cmd = "get?:";
+		// match hello command
+		let cmd = "self:";
 		if string.starts_with( cmd) {
-			let regex = Regex::new( r"get\?:([:xdigit:]{16}).").unwrap();
+			let regex = Regex::new( r"self:(.+:.+).").unwrap();
 			let cap = regex.captures( string);
 			if cap.is_none() { return None;}
 			let cap = cap.unwrap();
 
-			// parse hash
-			let hash_str = cap.at( 1);
-			if hash_str.is_none() { return None;}
-			let hash_str = hash_str.unwrap();
-			let hash : Option<u64> = 
-				num::from_str_radix( hash_str, 16).ok();
-			if hash.is_none() { return None;}
-			let hash = hash.unwrap();
+			// parse hostname
+			let hostname = cap.at( 1);
+			if hostname.is_none() { return None;}
+			let hostname = hostname.unwrap().to_string();
 			// return
-			return Some( Get( hash));}
+			return Some( Hello( hostname));}
 
-		// match want request
-		let cmd = "want?:";
-		if string.starts_with( cmd) {
-			let regex = Regex::new( r"want\?:([:xdigit:]{16}).").unwrap();
-			let cap = regex.captures( string);
-			if cap.is_none() { return None;}
-			let cap = cap.unwrap();
-
-			// parse hash
-			let hash_str = cap.at( 1);
-			if hash_str.is_none() { return None;}
-			let hash_str = hash_str.unwrap();
-			let hash : Option<u64> = 
-				num::from_str_radix( hash_str, 16).ok();
-			if hash.is_none() { return None;}
-			let hash = hash.unwrap();
-			// return
-			return Some( WantReq( hash));}
+		// match others request
+		let cmd = "others?";
+		if string.eq( cmd) {
+			return Some( OthersReq);}
 
 		// match take command
 		let cmd = "take:";
@@ -144,37 +135,51 @@ impl Command {
 			// return
 			return Some( Take( json));}
 
+		// match want request
+		let cmd = "want?:";
+		if string.starts_with( cmd) {
+			let regex = Regex::new( r"want\?:([:xdigit:]{16}).").unwrap();
+			let cap = regex.captures( string);
+			if cap.is_none() { return None;}
+			let cap = cap.unwrap();
+
+			// parse hash
+			let hash_str = cap.at( 1);
+			if hash_str.is_none() { return None;}
+			let hash_str = hash_str.unwrap();
+			let hash : Option<u64> = 
+				u64::from_str_radix( hash_str, 16).ok();
+			if hash.is_none() { return None;}
+			let hash = hash.unwrap();
+			// return
+			return Some( WantReq( hash));}
+
 		// fallback
 		return None;}
 }
 impl fmt::Display for Command {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		match self {
-			&Hello( ref hostname) =>
-				write!( formatter, "hi:{}.", *hostname),
-			&OthersReq =>
-				write!( formatter, "others?"),
+			&Fetch( ref hash) =>
+				write!( formatter, "fetch?:{:016x}.", *hash),
+			&Get( ref hash) =>
+				write!( formatter, "get?:{:016x}.", *hash),
 			&HaveDec( ref hash) =>
 				write!( formatter, "have:{:016x}.", *hash),
 			&HaveReq( ref hash) =>
 				write!( formatter, "have?:{:016x}.", *hash),
-			&Get( ref hash) =>
-				write!( formatter, "get?:{:016x}.", *hash),
-			&WantReq( ref hash) =>
-				write!( formatter, "want?:{:016x}.", *hash),
+			&Hello( ref hostname) =>
+				write!( formatter, "self:{}.", *hostname),
+			&OthersReq =>
+				write!( formatter, "others?"),
 			&Take( ref data) =>
 				write!( formatter, "take:{}.",
-					json::encode( data).unwrap()),}}
+					json::encode( data).unwrap()),
+			&WantReq( ref hash) =>
+				write!( formatter, "want?:{:016x}.", *hash),}}
 }
 
-pub enum Response {
-	Okay,
-	OkayResult( Json),
-	Affirm,
-	Deny,
-	Error,
-	ErrorMsg( String),
-}
+
 impl Response {
 	pub fn from_str( string: &str) -> Option<Response> {
 		// match okay response

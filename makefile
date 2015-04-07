@@ -1,15 +1,15 @@
-#globals
+# globals
 default: build
 freshen: clean build
 clean:
 	cargo clean
 
-#vars
+# vars
 
-#commands
+# commands
 build:
 	cargo build
 
-#test
+# tests
 test:
-	echo asdf
+	cargo test

@@ -1,5 +1,4 @@
 // library uses
-use std::num;
 use std::fmt;
 use std::clone;
 use regex::Regex;
@@ -68,7 +67,7 @@ impl Auth {
 		if id_str.is_none() { return None;}
 		let id_str = id_str.unwrap();
 		let id : Option<u32> =
-			num::from_str_radix( id_str, 16).ok();
+			u32::from_str_radix( id_str, 16).ok();
 		if id.is_none() { return None;}
 		let id = id.unwrap();
 

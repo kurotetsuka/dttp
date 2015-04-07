@@ -3,24 +3,18 @@
 
 // rustc feature enables
 #![feature(collections)]
-#![feature(convert)]
 #![feature(core)]
 
 // library imports
+#[macro_use]
+extern crate arcmutex;
 extern crate regex;
 extern crate rustc_serialize;
 extern crate rand;
 extern crate time;
 
 // reexports
-pub use auth::Auth;
-pub use consts::DTTPV;
-pub use dt::Datetime;
-pub use hub::Hub;
-pub use hub::remote::RemoteHub;
-pub use key::PublicKey;
-pub use key::SecretKey;
-pub use mote::Mote;
+pub use prelude::*;
 
 // modules
 pub mod auth;
@@ -29,6 +23,7 @@ pub mod dt;
 pub mod hub;
 pub mod key;
 pub mod mote;
+pub mod prelude;
 pub mod protocol;
 
 // tests
