@@ -3,7 +3,7 @@
 
 // rustc feature enables
 #![feature(collections)]
-#![feature(core)]
+#![feature(scoped)]
 
 // library imports
 #[macro_use]

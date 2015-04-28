@@ -1,5 +1,4 @@
 // library uses
-use std::num::ToPrimitive;
 use std::fmt;
 use time::now_utc;
 
@@ -29,15 +28,15 @@ impl Datetime {
 		// get time
 		let now = now_utc();
 		// get millis
-		let millis =
-			24 * now.tm_hour.to_u32().unwrap() +
-			60 * now.tm_min.to_u32().unwrap() +
-			1000 * now.tm_sec.to_u32().unwrap() +
-			now.tm_nsec.to_u32().unwrap();
+		let millis : u32 = (
+			24 * now.tm_hour +
+			60 * now.tm_min +
+			1000 * now.tm_sec +
+			now.tm_nsec) as u32;
 		// return
 		Datetime {
-			year: ( now.tm_year + 1900).to_u16().unwrap(),
-			day: now.tm_yday.to_u16().unwrap(),
+			year: ( now.tm_year + 1900) as u16,
+			day: now.tm_yday as u16,
 			milli: millis,}}
 
 	pub fn from_str( string : &str) -> Option<Datetime> {

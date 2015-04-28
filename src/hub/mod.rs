@@ -1,21 +1,9 @@
 // library uses
 use std::collections::HashMap;
-//use std::hash;
-//use std::io::{ Acceptor, BufferedReader, Listener};
 use std::net::SocketAddr;
-//use std::io::net::ip::{ SocketAddr, ToSocketAddr};
-//use std::io::net::tcp::{ TcpListener, TcpStream};
-//use std::io::timer::sleep;
 use std::sync::{ Arc, Mutex};
 use std::sync::mpsc::Sender;
-//use std::sync::mpsc::{ self, Sender, Receiver};
 use std::thread::JoinGuard;
-//use std::thread::{ Thread, JoinGuard};
-//use std::time::duration::Duration;
-
-//use rustc_serialize::Decodable;
-//use rustc_serialize::json;
-//use rustc_serialize::json::{ Json, ToJson};
 
 // local uses
 use auth::*;
