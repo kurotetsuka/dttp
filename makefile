@@ -10,6 +10,9 @@ clean:
 build:
 	cargo build
 
+ci:
+	make-ci build $$(find src -name *.rs)
+
 # tests
 test:
 	cargo test
