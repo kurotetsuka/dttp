@@ -6,7 +6,7 @@ use regex::Regex;
 // local uses
 
 /// class that defines the signing agent of a mote
-#[derive( Hash)]
+#[derive( Hash, PartialEq, Eq)]
 pub struct Auth {
 	pub user: Option<String>,
 	pub comment: Option<String>,
@@ -40,7 +40,7 @@ impl Auth {
 			id: Some( 0x0a1a20c0),
 		}}
 
-	// this needs to be fixed to accept all possible auth strings
+	// this needs to be fixed to accept comments
 	pub fn from_str( string: &str) -> Option<Auth> {
 		// regex with user, email, and key
 		let regex = Regex::new(

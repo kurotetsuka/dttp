@@ -2,15 +2,14 @@
 #![crate_type="lib"]
 
 // rustc feature enables
-#![feature(collections)]
 #![feature(scoped)]
 
 // library imports
-#[macro_use]
-extern crate arcmutex;
+extern crate gpgme;
+extern crate rand;
 extern crate regex;
 extern crate rustc_serialize;
-extern crate rand;
+extern crate serde;
 extern crate time;
 
 // reexports
@@ -25,7 +24,3 @@ pub mod key;
 pub mod mote;
 pub mod prelude;
 pub mod protocol;
-
-// tests
-#[test]
-fn it_works(){}

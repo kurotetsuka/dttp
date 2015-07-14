@@ -11,7 +11,7 @@ use self::Response::*;
 
 
 pub enum MoteSpec {
-	ShortHash( u8),
+	ShortHash( u16),
 	LongHash( u64),
 	Meta( String),
 	Auth( String),

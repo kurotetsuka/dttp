@@ -32,7 +32,7 @@ impl Datetime {
 			24 * now.tm_hour +
 			60 * now.tm_min +
 			1000 * now.tm_sec +
-			now.tm_nsec) as u32;
+			now.tm_nsec / 1000) as u32;
 		// return
 		Datetime {
 			year: ( now.tm_year + 1900) as u16,

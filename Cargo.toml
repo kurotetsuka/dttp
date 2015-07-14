@@ -1,13 +1,14 @@
 [package]
 
 name = "dttp"
-version = "0.1.0"
+version = "0.3.0"
 authors = ["kurotetsuka <kurotetsuka@gmail.com>"]
 
 [dependencies]
-arcmutex = "^0.1"
-regex = "^0.1"
-time = "^0.1"
+gpgme = "*"
 rand = "^0.3"
+regex = "^0.1"
 rustc-serialize = "^0.3"
 #rust-crypto = "*"
+serde = "^0.4"
+time = "^0.1"

@@ -157,11 +157,11 @@ impl Mote {
 		//generate plainbytes to sign
 		let mut plain : Vec<u8> = Vec::new();
 		//push meta bytes
-		plain.push_all( self.meta.as_bytes());
+		plain.extend( self.meta.as_bytes());
 		//push datetime bytes
-		plain.push_all( self.datetime.to_bytes().as_ref());
+		plain.extend( self.datetime.to_bytes().iter());
 		//push data bytes
-		plain.push_all( self.data.as_ref());
+		plain.extend( self.data.iter());
 		//set signature fields
 		self.auth = ( *auth).clone();
 		self.sig = key.sign( plain.as_ref());}

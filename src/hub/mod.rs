@@ -2,19 +2,20 @@
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::{ Arc, Mutex};
-use std::sync::mpsc::Sender;
-use std::thread::JoinGuard;
 
 // local uses
 use auth::*;
 use mote::*;
-use hub::remote::RemoteHub;
+use key::*;
+use hub::remote::*;
+use hub::worker::*;
 //use protocol::*;
 //use protocol::Command::*;
 //use protocol::Response::*;
 
 // modules
 pub mod remote;
+pub mod worker;
 
 // constants
 //static PUSH_LOG_DECLINE: bool = false;
@@ -24,54 +25,71 @@ pub mod remote;
 
 #[derive( PartialEq, Eq, Clone, Copy, Hash)]
 pub enum Mode {
-	Track,
 	Bootstrap,
+	Track,
 	Push,
 	Pull,
 	Serve,
 }
 
-#[derive( PartialEq, Eq, Clone, Copy, Hash)]
-pub enum ControlMsg {
-	Stop,
-}
-
+//#[derive( Clone)]
 pub struct Hub {
 	// this hub's authorizing party
-	pub auth: Arc<Mutex<Auth>>,
-	// this hub's hostname
-	pub hostname: Arc<Mutex<String>>,
-	// this hub's port
-	pub port: Arc<Mutex<u16>>,
-	// this hub's stored motes
-	pub motedb: Arc<Mutex<Vec<Mote>>>,
-	// this hub's auth-key database
-	//pub authdb: Vec<Auth>,
-	// this hub's auth database
-	pub remotedb: Arc<Mutex<Vec<RemoteHub>>>,
+	pub auth: Arc<Mutex< Auth>>,
 	// this hub's authorizing key
-	//pub sec_key: AuthSecKey,
+	pub sec_key: HyphSecretKey,
 	// this hub's verifying key
-	//pub pub_key: AuthPubKey,
+	pub pub_key: HyphPublicKey,
+
+	// this hub's hostname
+	pub hostname: Arc<Mutex< String>>,
+	// this hub's port
+	pub port: Arc<Mutex< u16>>,
+
+	// this hub's auth-key database
+	pub authdb: Arc<Mutex< HashMap<Auth, HyphPublicKey>>>,
+	// this hub's stored motes
+	pub motedb: Arc<Mutex< Vec<Mote>>>,
+	// this hub's auth database
+	pub remotedb: Arc<Mutex< Vec<RemoteHub>>>,
+
+	// this hub's enabled operation modes
+	modes: Arc<Mutex< HashMap<Mode, bool>>>,
 	// this hub's workers
-	pub workers: HashMap<Mode, Vec<WorkerControl>>,
+	workers: Arc<Mutex< HashMap<WorkerType, Vec<WorkerControl>>>>,
 }
 impl Hub {
-	pub fn new( auth: Auth, hostname: String, port: u16) -> Hub {
+	pub fn new( auth: Auth, sec_key: HyphSecretKey, pub_key: HyphPublicKey,
+			hostname: String, port: u16) -> Hub {
 		let mut workers = HashMap::new();
-		workers.insert( Mode::Track, Vec::new());
-		workers.insert( Mode::Bootstrap, Vec::new());
-		workers.insert( Mode::Push, Vec::new());
-		workers.insert( Mode::Pull, Vec::new());
-		workers.insert( Mode::Serve, Vec::new());
+		workers.insert( WorkerType::Bootstrap, Vec::new());
+		workers.insert( WorkerType::Track, Vec::new());
+		workers.insert( WorkerType::Push, Vec::new());
+		workers.insert( WorkerType::Pull, Vec::new());
+		workers.insert( WorkerType::ServeListen, Vec::new());
+		workers.insert( WorkerType::ServeHandle, Vec::new());
+
+		let mut modes = HashMap::new();
+		modes.insert( Mode::Bootstrap, false);
+		modes.insert( Mode::Track, false);
+		modes.insert( Mode::Push, false);
+		modes.insert( Mode::Pull, false);
+		modes.insert( Mode::Serve, false);
 
 		Hub {
 			auth: Arc::new( Mutex::new( auth)),
+			sec_key: sec_key,
+			pub_key: pub_key,
+
 			hostname: Arc::new( Mutex::new( hostname)),
 			port: Arc::new( Mutex::new( port)),
+
+			authdb: Arc::new( Mutex::new( HashMap::new())),
 			motedb: Arc::new( Mutex::new( Vec::new())),
 			remotedb: Arc::new( Mutex::new( Vec::new())),
-			workers: workers,}}
+
+			modes: Arc::new( Mutex::new( modes)),
+			workers: Arc::new( Mutex::new( workers)),}}
 
 	pub fn say_hi( &self){
 		println!("dttp daemon says hi :)");}
@@ -86,37 +104,24 @@ impl Hub {
 		motedb.push( mote);}
 
 	pub fn mode_get( &self, mode: &Mode) -> bool {
-		match self.workers.get( mode) {
-			Some( _) => true,
-			None => false,}}
-	pub fn mode_set( &mut self, _mode: Mode, _enabled: bool) {}
-		//self.workers.insert( mode, enabled);}
+		let modes = self.modes.lock().unwrap();
+		if let Some( &result) = modes.get( mode) {
+			return result;}
+		else {
+			return false;}}
+
+	pub fn mode_set( &mut self, mode: Mode, enabled: bool) {
+		// check if we actually have to do anything
+		if self.mode_get( &mode) == enabled {
+			return;}
+		let _workers = self.workers.lock().unwrap();
+		return;}
 
 	pub fn launch( &mut self){}
 }
 
-impl Clone for Hub {
+/*impl Clone for Hub {
 	fn clone( &self) -> Hub {
 		panic!();}
 	fn clone_from( &mut self, _source: &Hub){}
-}
-
-pub struct WorkerControl {
-	pub mode: Mode,
-	pub guard: JoinGuard<'static, ()>,
-	pub control: Sender<ControlMsg>,
-}
-impl WorkerControl {
-	pub fn new( mode: Mode, guard: JoinGuard<'static, ()>,
-			control: Sender<ControlMsg>) -> WorkerControl {
-		WorkerControl {
-			mode: mode,
-			guard: guard,
-			control: control,}}
-
-	pub fn stop( &mut self){
-		self.control.send( ControlMsg::Stop).ok();}
-
-	pub fn join( self){
-		self.guard.join();}
-}
+}*/
