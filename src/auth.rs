@@ -44,7 +44,7 @@ impl Auth {
 	pub fn from_str( string: &str) -> Option<Auth> {
 		// regex with user, email, and key
 		let regex = Regex::new(
-			r"([:ascii:]+) <(\S+@\S+)> (\[[:xdigit:]{8}\])");
+			r"(\S+) <(\S+@\S+)> (\[[:xdigit:]{8}\])");
 		if regex.is_err() { return None;}
 		let regex = regex.unwrap();
 

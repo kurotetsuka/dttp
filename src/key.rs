@@ -57,12 +57,25 @@ impl PublicKey for GpgPubKey {
 		true}
 }
 
-pub enum HyphPublicKey {
+pub enum DttpSecretKey {
+	Fake( FakeSecKey),
+	Gpg( GpgSecKey),
+}
+pub enum DttpPublicKey {
 	Fake( FakePubKey),
 	Gpg( GpgPubKey),
 }
-
-pub enum HyphSecretKey {
-	Fake( FakeSecKey),
-	Gpg( GpgSecKey),
+impl SecretKey for DttpSecretKey {
+	//fn decrypt( &self, data: &[u8]) -> Vec<u8>;
+	fn sign( &self, data: &[u8]) -> Vec<u8> {
+		match self {
+			&DttpSecretKey::Fake( ref inner) => inner.sign( data),
+			&DttpSecretKey::Gpg( ref inner) => inner.sign( data),}}
+}
+impl PublicKey for DttpPublicKey {
+	//fn encrypt( &self, data: &[u8]) -> Vec<u8>;
+	fn verify( &self, data: &[u8], sig :&[u8]) -> bool {
+		match self {
+			&DttpPublicKey::Fake( ref inner) => inner.verify( data, sig),
+			&DttpPublicKey::Gpg( ref inner) => inner.verify( data, sig),}}
 }

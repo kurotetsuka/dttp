@@ -3,9 +3,7 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::str::FromStr;
 
-use rustc_serialize::base64;
 use rustc_serialize::base64::*;
-use rustc_serialize::base64::Newline::*;
 use rustc_serialize::json;
 use rustc_serialize::json::*;
 
@@ -21,14 +19,30 @@ pub enum Class {
 	// text classes
 	Plain,
 	Markdown,
-	//  text data classes
+	// + text data classes
 	Json,
 	// binary classes
 	Raw,
-	//  image classes
+	// + image classes
 	Png,
-	//  video classes
+	// + video classes
 	Mp4,
+}
+impl Class {
+	fn to_byte( &self) -> u8 {
+		match self {
+			&Class::Plain =>
+				0x00,
+			&Class::Markdown =>
+				0x01,
+			&Class::Json =>
+				0x02,
+			&Class::Raw =>
+				0x80,
+			&Class::Png =>
+				0x81,
+			&Class::Mp4 =>
+				0x82,}}
 }
 impl FromStr for Class {
 	type Err = ();
@@ -62,10 +76,10 @@ pub struct Mote {
 	pub dttpv: String,
 	// a string describing the data
 	pub meta: String,
-	// the type of data
-	pub class: Class,
 	// the party signing the mote
 	pub auth: Auth,
+	// the type of data
+	pub class: Class,
 	// the release date of the mote
 	pub datetime: Datetime,
 	// the data field
@@ -79,8 +93,8 @@ impl Mote {
 		Mote {
 			dttpv: DTTPV.to_string(),
 			meta: String::new(),
-			class: Class::Raw,
 			auth: Auth::null(),
+			class: Class::Raw,
 			datetime: Datetime::null(),
 			data: Vec::new(),
 			sig: Vec::new(),}}
@@ -90,8 +104,8 @@ impl Mote {
 		Mote {
 			dttpv: DTTPV.to_string(),
 			meta: meta,
-			class: class,
 			auth: Auth::null(),
+			class: class,
 			datetime: datetime,
 			data: data,
 			sig: Vec::new(),}}
@@ -101,8 +115,8 @@ impl Mote {
 		Mote {
 			dttpv: DTTPV.to_string(),
 			meta: meta,
-			class: class,
 			auth: Auth::null(),
+			class: class,
 			datetime: datetime,
 			data: data.into_bytes(),
 			sig: Vec::new(),}}
@@ -115,15 +129,19 @@ impl Mote {
 		Mote::from_msg( &msg)}
 
 	pub fn from_msg( msg: &MoteMsg) -> Option<Mote> {
-		// parse class
-		let class = Class::from_str( msg.class.as_ref());
-		if class.is_err() { return None;}
-		let class = class.unwrap();
+		// get dttpv, meta
+		let dttpv = msg.dttpv.clone();
+		let meta = msg.meta.clone();
 
 		// parse auth
 		let auth = Auth::from_str( msg.auth.as_ref());
 		if auth.is_none() { return None;}
 		let auth = auth.unwrap();
+
+		// parse class
+		let class = Class::from_str( msg.class.as_ref());
+		if class.is_err() { return None;}
+		let class = class.unwrap();
 
 		// parse datetime
 		let datetime = Datetime::from_str( msg.datetime.as_ref());
@@ -144,57 +162,65 @@ impl Mote {
 
 		// return
 		Some( Mote {
-			dttpv: String::from( DTTPV),
-			meta: msg.meta.clone(),
-			class: class,
-			auth: auth,
-			datetime: datetime,
-			data: data,
-			sig: sig,})}
+			dttpv: dttpv, meta: meta, auth: auth,
+			class: class, datetime: datetime,
+			data: data, sig: sig,})}
 
-
-	pub fn sign<Key: SecretKey>( &mut self, auth: &Auth, key: &Key){
-		//generate plainbytes to sign
+	pub fn sign( &mut self, key: &DttpSecretKey){
+		// generate plainbytes to sign
 		let mut plain : Vec<u8> = Vec::new();
-		//push meta bytes
+		// push dttpv bytes
+		plain.extend( self.dttpv.as_bytes());
+		// push meta bytes
 		plain.extend( self.meta.as_bytes());
-		//push datetime bytes
+		// push auth bytes
+		plain.extend( self.auth.to_string().as_bytes());
+		// push class bytes
+		plain.push( self.class.to_byte());
+		// push datetime bytes
 		plain.extend( self.datetime.to_bytes().iter());
-		//push data bytes
+		// push data bytes
 		plain.extend( self.data.iter());
-		//set signature fields
-		self.auth = ( *auth).clone();
+		// set signature
 		self.sig = key.sign( plain.as_ref());}
 
+	pub fn verify( &self, key: &DttpPublicKey) -> bool {
+		// generate plainbytes to verify
+		let mut plain : Vec<u8> = Vec::new();
+		// push dttpv bytes
+		plain.extend( self.dttpv.as_bytes());
+		// push meta bytes
+		plain.extend( self.meta.as_bytes());
+		// push auth bytes
+		plain.extend( self.auth.to_string().as_bytes());
+		// push class bytes
+		plain.push( self.class.to_byte());
+		// push datetime bytes
+		plain.extend( self.datetime.to_bytes().iter());
+		// push data bytes
+		plain.extend( self.data.iter());
+		// check signature field
+		return key.verify( plain.as_ref(), self.sig.as_ref());}
+
 	pub fn to_msg( &self) -> MoteMsg {
-		let b64_config = base64::Config {
-			char_set: Standard,
-			newline: LF,
-			pad: true,
-			line_length: None };
 		MoteMsg {
 			dttpv: self.dttpv.to_string(),
 			meta: self.meta.to_string(),
 			class: self.class.to_string(),
 			auth: self.auth.to_string(),
 			datetime: self.datetime.to_string(),
-			data: self.data.to_base64( b64_config),
-			sig: self.sig.to_base64( b64_config),}}
+			data: self.data.to_base64( B64_CONFIG),
+			sig: self.sig.to_base64( B64_CONFIG),}}
 }
 
 impl fmt::Display for Mote {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
-		let b64_config = base64::Config {
-			char_set: Standard,
-			newline: LF,
-			pad: true,
-			line_length: None };
 		write!( formatter,
-			"[dttpv-{}, \"{}\", {}, \"{}\", {}, {}, {}]",
-			self.dttpv, self.meta, self.class,
-			self.auth, self.datetime,
-			self.data.to_base64( b64_config),
-			self.sig.to_base64( b64_config),)}
+			"[dttpv-{} \"{}\" \"{}\" {} {} {} {}]",
+			self.dttpv, self.meta, self.auth,
+			self.class, self.datetime,
+			self.data.to_base64( B64_CONFIG),
+			self.sig.to_base64( B64_CONFIG),)}
 }
 
 /// a mote, prepared for transmittal
@@ -204,10 +230,10 @@ pub struct MoteMsg {
 	pub dttpv: String,
 	// a string describing the data
 	pub meta: String,
-	// the type of data
-	pub class: String,
 	// the party signing the mote
 	pub auth: String,
+	// the type of data
+	pub class: String,
 	// the release date of the mote
 	pub datetime: String,
 	// the data field

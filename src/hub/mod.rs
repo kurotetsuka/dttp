@@ -37,9 +37,9 @@ pub struct Hub {
 	// this hub's authorizing party
 	pub auth: Arc<Mutex< Auth>>,
 	// this hub's authorizing key
-	pub sec_key: HyphSecretKey,
+	pub sec_key: DttpSecretKey,
 	// this hub's verifying key
-	pub pub_key: HyphPublicKey,
+	pub pub_key: DttpPublicKey,
 
 	// this hub's hostname
 	pub hostname: Arc<Mutex< String>>,
@@ -47,7 +47,7 @@ pub struct Hub {
 	pub port: Arc<Mutex< u16>>,
 
 	// this hub's auth-key database
-	pub authdb: Arc<Mutex< HashMap<Auth, HyphPublicKey>>>,
+	pub authdb: Arc<Mutex< HashMap<Auth, DttpPublicKey>>>,
 	// this hub's stored motes
 	pub motedb: Arc<Mutex< Vec<Mote>>>,
 	// this hub's auth database
@@ -59,7 +59,7 @@ pub struct Hub {
 	workers: Arc<Mutex< HashMap<WorkerType, Vec<WorkerControl>>>>,
 }
 impl Hub {
-	pub fn new( auth: Auth, sec_key: HyphSecretKey, pub_key: HyphPublicKey,
+	pub fn new( auth: Auth, sec_key: DttpSecretKey, pub_key: DttpPublicKey,
 			hostname: String, port: u16) -> Hub {
 		let mut workers = HashMap::new();
 		workers.insert( WorkerType::Bootstrap, Vec::new());
@@ -119,9 +119,3 @@ impl Hub {
 
 	pub fn launch( &mut self){}
 }
-
-/*impl Clone for Hub {
-	fn clone( &self) -> Hub {
-		panic!();}
-	fn clone_from( &mut self, _source: &Hub){}
-}*/
