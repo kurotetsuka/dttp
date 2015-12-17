@@ -2,7 +2,6 @@
 #![crate_type="lib"]
 
 // rustc feature enables
-#![feature(scoped)]
 
 // library imports
 extern crate gpgme;

@@ -27,48 +27,61 @@ impl Datetime {
 	pub fn now() -> Datetime {
 		// get time
 		let now = now_utc();
-		// get millis
-		let millis : u32 = (
-			24 * now.tm_hour +
-			60 * now.tm_min +
+
+		// get year
+		// get day
+		// get milli
+		let milli = (
+			now.tm_nsec / 1000 +
 			1000 * now.tm_sec +
-			now.tm_nsec / 1000) as u32;
+			60 * 1000 * now.tm_min +
+			24 * 60 * 1000 * now.tm_hour) as u32;
+
 		// return
 		Datetime {
 			year: ( now.tm_year + 1900) as u16,
 			day: now.tm_yday as u16,
-			milli: millis,}}
+			milli: milli}}
 
 	pub fn from_str( string : &str) -> Option<Datetime> {
 		let mut split = string.split( '.');
 
-		// parse year
+		// get strings
 		let year_str = split.next();
-		if year_str.is_none() { return None;}
+		let day_str = split.next();
+		let milli_str = split.next();
+
+		// error check
+		if year_str.is_none() ||
+			day_str.is_none() ||
+			milli_str.is_none() {
+				return None;}
+
+		// unwrap
 		let year_str = year_str.unwrap();
+		let day_str = day_str.unwrap();
+		let milli_str = milli_str.unwrap();
+
+		// parse year, day, milli
 		let year : Option<u16> =
 			u16::from_str_radix( year_str, 16).ok();
-		if year.is_none() { return None;}
-		let year = year.unwrap();
-
-		// parse day
-		let day_str = split.next();
-		if day_str.is_none() { return None;}
-		let day_str = day_str.unwrap();
 		let day : Option<u16> =
 			u16::from_str_radix( day_str, 16).ok();
-		if day.is_none() { return None;}
-		let day = day.unwrap();
-
-		// parse milli
-		let milli_str = split.next();
-		if milli_str.is_none() { return None;}
-		let milli_str = milli_str.unwrap();
 		let milli : Option<u32> =
 			u32::from_str_radix( milli_str, 16).ok();
-		if milli.is_none() { return None;}
+
+		// error check
+		if year.is_none() ||
+			day.is_none() ||
+			milli.is_none() {
+				return None;}
+
+		// unwrap
+		let year = year.unwrap();
+		let day = day.unwrap();
 		let milli = milli.unwrap();
 
+		// return
 		Some( Datetime::new( year, day, milli))}
 
 	pub fn to_bytes( &self) -> Vec<u8> {

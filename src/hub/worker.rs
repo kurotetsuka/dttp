@@ -1,5 +1,5 @@
 // library uses
-use std::thread::JoinGuard;
+use std::thread::JoinHandle;
 use std::sync::mpsc::Sender;
 
 // local uses
@@ -22,11 +22,11 @@ pub enum WorkerType {
 
 pub struct WorkerControl {
 	pub mode: WorkerType,
-	pub guard: JoinGuard<'static, ()>,
+	pub guard: JoinHandle<()>,
 	pub control: Sender<ControlMsg>,
 }
 impl WorkerControl {
-	pub fn new( mode: WorkerType, guard: JoinGuard<'static, ()>,
+	pub fn new( mode: WorkerType, guard: JoinHandle<()>,
 			control: Sender<ControlMsg>) -> WorkerControl {
 		WorkerControl {
 			mode: mode,
@@ -37,5 +37,5 @@ impl WorkerControl {
 		self.control.send( ControlMsg::Stop).ok();}
 
 	pub fn join( self){
-		self.guard.join();}
+		let _ = self.guard.join();}
 }

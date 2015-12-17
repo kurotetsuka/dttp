@@ -1,4 +1,4 @@
 extern crate dttp;
 
-pub mod mote_signing;
-pub mod mote_verification;
+pub mod mote;
+pub mod hub;
