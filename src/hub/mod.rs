@@ -1,7 +1,10 @@
-// library uses
+// standard library uses
 use std::collections::HashMap;
 use std::net::SocketAddr;
-use std::sync::{ Arc, Mutex};
+//use std::sync::{ Arc, Mutex};
+
+// other library uses
+use arcmutex::{ arcmutex, ArcMutex};
 
 // local uses
 use auth::*;
@@ -35,32 +38,32 @@ pub enum Mode {
 //#[derive( Clone)]
 pub struct Hub {
 	// this hub's authorizing party
-	pub auth: Arc<Mutex< Auth>>,
+	pub auth: ArcMutex<Auth>,
 	// this hub's authorizing key
-	pub sec_key: DttpSecretKey,
+	//pub sec_key: DttpSecretKey,
 	// this hub's verifying key
-	pub pub_key: DttpPublicKey,
+	//pub pub_key: DttpPublicKey,
 
 	// this hub's hostname
-	pub hostname: Arc<Mutex< String>>,
+	pub hostname: ArcMutex<String>,
 	// this hub's port
-	pub port: Arc<Mutex< u16>>,
+	pub port: ArcMutex<u16>,
 
 	// this hub's auth-key database
-	pub authdb: Arc<Mutex< HashMap<Auth, DttpPublicKey>>>,
+	pub authdb: ArcMutex< HashMap<Auth, DttpPublicKey>>,
 	// this hub's stored motes
-	pub motedb: Arc<Mutex< Vec<Mote>>>,
+	pub motedb: ArcMutex< Vec<Mote>>,
 	// this hub's auth database
-	pub remotedb: Arc<Mutex< Vec<RemoteHub>>>,
+	pub remotedb: ArcMutex< Vec<RemoteHub>>,
 
 	// this hub's enabled operation modes
-	modes: Arc<Mutex< HashMap<Mode, bool>>>,
+	modes: ArcMutex< HashMap<Mode, bool>>,
 	// this hub's workers
-	workers: Arc<Mutex< HashMap<WorkerType, Vec<WorkerControl>>>>,
+	workers: ArcMutex< HashMap<WorkerType, Vec<WorkerControl>>>,
 }
 impl Hub {
-	pub fn new( auth: Auth, sec_key: DttpSecretKey, pub_key: DttpPublicKey,
-			hostname: String, port: u16) -> Hub {
+	//, sec_key: DttpSecretKey, pub_key: DttpPublicKey
+	pub fn new( auth: Auth, hostname: String, port: u16) -> Hub {
 		let mut workers = HashMap::new();
 		workers.insert( WorkerType::Bootstrap, Vec::new());
 		workers.insert( WorkerType::Track, Vec::new());
@@ -77,19 +80,19 @@ impl Hub {
 		modes.insert( Mode::Serve, false);
 
 		Hub {
-			auth: Arc::new( Mutex::new( auth)),
-			sec_key: sec_key,
-			pub_key: pub_key,
+			auth: arcmutex( auth),
+			//sec_key: sec_key,
+			//pub_key: pub_key,
 
-			hostname: Arc::new( Mutex::new( hostname)),
-			port: Arc::new( Mutex::new( port)),
+			hostname: arcmutex( hostname),
+			port: arcmutex( port),
 
-			authdb: Arc::new( Mutex::new( HashMap::new())),
-			motedb: Arc::new( Mutex::new( Vec::new())),
-			remotedb: Arc::new( Mutex::new( Vec::new())),
+			authdb: arcmutex( HashMap::new()),
+			motedb: arcmutex( Vec::new()),
+			remotedb: arcmutex( Vec::new()),
 
-			modes: Arc::new( Mutex::new( modes)),
-			workers: Arc::new( Mutex::new( workers)),}}
+			modes: arcmutex( modes),
+			workers: arcmutex( workers),}}
 
 	pub fn say_hi( &self){
 		println!("dttp daemon says hi :)");}

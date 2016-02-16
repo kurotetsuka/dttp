@@ -10,19 +10,19 @@ clean:
 build:
 	cargo build
 
+update:
+	cargo update
+
 ci:
 	make-ci build $$(find src -name *.rs)
 
 # tests
-test: test-all
+test: test-keybase
 test-all:
 	cargo test
 
-test-sign:
-	cargo test --test sign
+test-keybase:
+	cargo test --test test_keybase
 
-test-verify:
-	cargo test --test verify
-
-test-key-import:
-	cargo test --test key_import
+test-gpg:
+	cargo test --test gpg

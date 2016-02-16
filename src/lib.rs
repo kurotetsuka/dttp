@@ -1,14 +1,12 @@
 #![crate_name="dttp"]
 #![crate_type="lib"]
 
-// rustc feature enables
-
 // library imports
+extern crate arcmutex;
 extern crate gpgme;
 extern crate rand;
 extern crate regex;
 extern crate rustc_serialize;
-extern crate serde;
 extern crate time;
 
 // reexports

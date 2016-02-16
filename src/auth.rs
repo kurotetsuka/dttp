@@ -10,7 +10,7 @@ use regex::Regex;
 pub struct Auth {
 	pub user: Option<String>,
 	pub comment: Option<String>,
-	pub email: Option<String>,
+	pub addr: Option<String>,
 	pub id: Option<u32>,
 }
 impl Auth {
@@ -18,17 +18,17 @@ impl Auth {
 		Auth {
 			user: None,
 			comment: None,
-			email: None,
+			addr: None,
 			id: None,
 		}}
 
 	pub fn new(
 			user: Option<String>, comment: Option<String>,
-			email: Option<String>, id: Option<u32>) -> Auth {
+			addr: Option<String>, id: Option<u32>) -> Auth {
 		Auth {
 			user: user,
 			comment: comment,
-			email: email,
+			addr: addr,
 			id: id,
 		}}
 
@@ -36,13 +36,13 @@ impl Auth {
 		Auth {
 			user: Some( "kurotetsuka".to_string()),
 			comment: None,
-			email: Some( "kurotetsuka@gmail.com".to_string()),
+			addr: Some( "kurotetsuka@gmail.com".to_string()),
 			id: Some( 0x0a1a20c0),
 		}}
 
 	// this needs to be fixed to accept comments
 	pub fn from_str( string: &str) -> Option<Auth> {
-		// regex with user, email, and key
+		// regex with user, addr, and key
 		let regex = Regex::new(
 			r"(\S+) <(\S+@\S+)> (\[[:xdigit:]{8}\])");
 		if regex.is_err() { return None;}
@@ -58,10 +58,10 @@ impl Auth {
 		let user = cap.at( 1);
 		if user.is_none() { return None;}
 		let user = user.unwrap().to_string();
-		// parse email
-		let email = cap.at( 2);
-		if email.is_none() { return None;}
-		let email = email.unwrap().to_string();
+		// parse addr
+		let addr = cap.at( 2);
+		if addr.is_none() { return None;}
+		let addr = addr.unwrap().to_string();
 		// parse id
 		let id_str = cap.at( 3);
 		if id_str.is_none() { return None;}
@@ -72,22 +72,22 @@ impl Auth {
 		let id = id.unwrap();
 
 		Some( Auth::new(
-			Some( user), None, Some( email), Some( id)))}
+			Some( user), None, Some( addr), Some( id)))}
 }
 impl fmt::Display for Auth {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		let self_tuple = (
 			self.user.as_ref(), self.comment.as_ref(),
-			self.email.as_ref(), self.id.as_ref());
+			self.addr.as_ref(), self.id.as_ref());
 		match self_tuple {
-			( Some( user), Some( comment), Some( email), Some( &id)) =>
+			( Some( user), Some( comment), Some( addr), Some( &id)) =>
 				write!( formatter,
 					"{} ({}) <{}> [{:08x}]",
-					user, comment, email, id),
-			( Some( user), Some( comment), Some( email), None) =>
+					user, comment, addr, id),
+			( Some( user), Some( comment), Some( addr), None) =>
 				write!( formatter,
 					"{} ({}) <{}>",
-					user, comment, email),
+					user, comment, addr),
 			( Some( user), Some( comment), None, Some( &id)) =>
 				write!( formatter,
 					"{} ({}) [{:08x}]",
@@ -96,14 +96,14 @@ impl fmt::Display for Auth {
 				write!( formatter,
 					"{} ({})",
 					user, comment),
-			( Some( user), None, Some( email), Some( &id)) =>
+			( Some( user), None, Some( addr), Some( &id)) =>
 				write!( formatter,
 					"{} <{}> [{:08x}]",
-					user, email, id),
-			( Some( user), None, Some( email), None) =>
+					user, addr, id),
+			( Some( user), None, Some( addr), None) =>
 				write!( formatter,
 					"{} <{}>",
-					user, email),
+					user, addr),
 			( Some( user), None, None, Some( &id)) =>
 				write!( formatter,
 					"{} [{:08x}]",
@@ -112,14 +112,14 @@ impl fmt::Display for Auth {
 				write!( formatter,
 					"{}",
 					user),
-			( None, Some( comment), Some( email), Some( &id)) =>
+			( None, Some( comment), Some( addr), Some( &id)) =>
 				write!( formatter,
 					"({}) <{}> [{:08x}]",
-					comment, email, id),
-			( None, Some( comment), Some( email), None) =>
+					comment, addr, id),
+			( None, Some( comment), Some( addr), None) =>
 				write!( formatter,
 					"({}) <{}>",
-					comment, email),
+					comment, addr),
 			( None, Some( comment), None, Some( &id)) =>
 				write!( formatter,
 					"({}) [{:08x}]",
@@ -128,14 +128,14 @@ impl fmt::Display for Auth {
 				write!( formatter,
 					"({})",
 					comment),
-			( None, None, Some( email), Some( &id)) =>
+			( None, None, Some( addr), Some( &id)) =>
 				write!( formatter,
 					"<{}> [{:08x}]",
-					email, id),
-			( None, None, Some( email), None) =>
+					addr, id),
+			( None, None, Some( addr), None) =>
 				write!( formatter,
 					"<{}>",
-					email),
+					addr),
 			( None, None, None, Some( &id)) =>
 				write!( formatter,
 					"[{:08x}]",
@@ -148,13 +148,13 @@ impl clone::Clone for Auth {
 		Auth {
 			user: self.user.clone(),
 			comment: self.comment.clone(),
-			email: self.email.clone(),
+			addr: self.addr.clone(),
 			id: self.id.clone(),
 		}}
 
 	fn clone_from( &mut self, source: &Auth){
 		self.user = source.user.clone();
 		self.comment = source.comment.clone();
-		self.email = source.email.clone();
+		self.addr = source.addr.clone();
 		self.id = source.id.clone();}
 }
