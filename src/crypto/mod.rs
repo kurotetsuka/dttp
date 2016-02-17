@@ -10,8 +10,8 @@ pub mod keybase;
 use mote::*;
 
 pub trait CryptoProvider {
-	fn sign( &self, mote: &mut Mote);
-	fn verify( &self, mote: &Mote) -> bool;
-	fn encrypt( &self, mote: &mut Mote);
-	fn decrypt( &self, mote: &mut Mote);
+	fn sign( &self, mote: &mut Mote) -> Result<(),String>;
+	fn verify( &self, mote: &Mote) -> Result<bool,String>;
+	fn encrypt( &self, mote: &mut Mote) -> Result<(),String>;
+	fn decrypt( &self, mote: &mut Mote) -> Result<(),String>;
 }

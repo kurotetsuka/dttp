@@ -22,7 +22,7 @@ test-all:
 	cargo test
 
 test-keybase:
-	cargo test --test test_keybase
+	cargo run --bin test_keybase
 
 test-gpg:
 	cargo test --test gpg

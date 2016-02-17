@@ -10,7 +10,6 @@ use rustc_serialize::json::*;
 
 // local uses
 use auth::*;
-use crypto::*;
 use consts::*;
 use dt::*;
 
@@ -96,12 +95,6 @@ impl Mote {
 		self.hash( &mut hasher);
 		hasher.finish()}
 
-	pub fn sign<C: CryptoProvider>( &mut self, crypto: &C){
-		crypto.sign( self);}
-
-	pub fn verify<C: CryptoProvider>( &self, crypto: &C) -> bool {
-		crypto.verify( self)}
-
 	pub fn to_msg( &self) -> MoteMsg {
 		MoteMsg {
 			dttpv: self.dttpv.clone(),
@@ -115,7 +108,7 @@ impl Mote {
 impl fmt::Debug for Mote {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		write!( formatter,
-			"[dttpv-{} \"{}\" \"{}\" {} \"{:?}\" \"{:?}\"]",
+			"[dttpv-{} \"{}\" {:?} {} {:?} {:?}]",
 			self.dttpv, self.auth, self.meta, self.datetime,
 			self.data,
 			self.sig,)}
