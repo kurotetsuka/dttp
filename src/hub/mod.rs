@@ -9,7 +9,6 @@ use arcmutex::{ arcmutex, ArcMutex};
 // local uses
 use auth::*;
 use mote::*;
-use key::*;
 use hub::remote::*;
 use hub::worker::*;
 //use protocol::*;
@@ -50,7 +49,7 @@ pub struct Hub {
 	pub port: ArcMutex<u16>,
 
 	// this hub's auth-key database
-	pub authdb: ArcMutex< HashMap<Auth, DttpPublicKey>>,
+	//pub authdb: ArcMutex< HashMap<Auth, DttpPublicKey>>,
 	// this hub's stored motes
 	pub motedb: ArcMutex< Vec<Mote>>,
 	// this hub's auth database
@@ -87,7 +86,7 @@ impl Hub {
 			hostname: arcmutex( hostname),
 			port: arcmutex( port),
 
-			authdb: arcmutex( HashMap::new()),
+			//authdb: arcmutex( HashMap::new()),
 			motedb: arcmutex( Vec::new()),
 			remotedb: arcmutex( Vec::new()),
 

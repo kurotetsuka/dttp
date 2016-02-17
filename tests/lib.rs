@@ -2,6 +2,6 @@
 extern crate dttp;
 
 // modules
-pub mod key;
+pub mod crypto;
 pub mod mote;
 pub mod hub;

@@ -4,15 +4,15 @@ use std::fmt;
 use std::hash::{ Hash, Hasher, SipHasher};
 use std::str::FromStr;
 
-use rustc_serialize::base64::*;
+//use rustc_serialize::base64::*;
 use rustc_serialize::json;
 use rustc_serialize::json::*;
 
 // local uses
 use auth::*;
+use crypto::*;
 use consts::*;
 use dt::*;
-use key::*;
 
 /// a unit of signed communication
 #[derive( Clone, Hash)]
@@ -41,7 +41,7 @@ impl Mote {
 			data: String::new(),
 			sig: String::new(),}}
 
-	pub fn new_text(
+	pub fn new(
 			auth: Auth,
 			meta: String,
 			datetime: Datetime,
@@ -77,17 +77,9 @@ impl Mote {
 		if datetime.is_none() { return None;}
 		let datetime = datetime.unwrap();
 
-		// parse data
-		let data : Option<Vec<u8>> =
-			msg.data.from_base64().ok();
-		if data.is_none() { return None;}
-		let data = data.unwrap();
-
-		// parse sig
-		let sig : Option<Vec<u8>> =
-			msg.sig.from_base64().ok();
-		if sig.is_none() { return None;}
-		let sig = sig.unwrap();
+		// get data, sig
+		let data = msg.data.clone();
+		let sig = msg.sig.clone();
 
 		// return
 		Some( Mote {
@@ -104,43 +96,17 @@ impl Mote {
 		self.hash( &mut hasher);
 		hasher.finish()}
 
-	pub fn sign( &mut self, key: &DttpSecretKey){
-		// generate plainbytes to sign
-		let mut plain : Vec<u8> = Vec::new();
-		// push dttpv bytes
-		plain.extend( self.dttpv.as_bytes());
-		// push meta bytes
-		plain.extend( self.meta.as_bytes());
-		// push auth bytes
-		plain.extend( self.auth.to_string().as_bytes());
-		// push datetime bytes
-		plain.extend( self.datetime.to_bytes().iter());
-		// push data bytes
-		plain.extend( self.data.iter());
-		// set signature
-		self.sig = key.sign( plain.as_ref());}
+	pub fn sign<C: CryptoProvider>( &mut self, crypto: &C){
+		crypto.sign( self);}
 
-	pub fn verify( &self, key: &DttpPublicKey) -> bool {
-		// generate plainbytes to verify
-		let mut plain : Vec<u8> = Vec::new();
-		// push dttpv bytes
-		plain.extend( self.dttpv.as_bytes());
-		// push meta bytes
-		plain.extend( self.meta.as_bytes());
-		// push auth bytes
-		plain.extend( self.auth.to_string().as_bytes());
-		// push datetime bytes
-		plain.extend( self.datetime.to_bytes().iter());
-		// push data bytes
-		plain.extend( self.data.iter());
-		// check signature field
-		return key.verify( plain.as_ref(), self.sig.as_ref());}
+	pub fn verify<C: CryptoProvider>( &self, crypto: &C) -> bool {
+		crypto.verify( self)}
 
 	pub fn to_msg( &self) -> MoteMsg {
 		MoteMsg {
 			dttpv: self.dttpv.clone(),
 			meta: self.meta.clone(),
-			auth: self.auth.clone(),
+			auth: self.auth.to_string(),
 			datetime: self.datetime.to_string(),
 			data: self.data.clone(),
 			sig: self.sig.clone(),}}
@@ -151,11 +117,11 @@ impl fmt::Debug for Mote {
 		write!( formatter,
 			"[dttpv-{} \"{}\" \"{}\" {} \"{:?}\" \"{:?}\"]",
 			self.dttpv, self.auth, self.meta, self.datetime,
-			self.data.to_base64( B64_CONFIG),
-			self.sig.to_base64( B64_CONFIG),)}
+			self.data,
+			self.sig,)}
 }
 
-/// a mote, prepared for transport
+/// a mote, prepared for encoding
 #[derive( Hash, RustcEncodable, RustcDecodable)]
 pub struct MoteMsg {
 	// a string indicating the protocol version / extension
