@@ -73,7 +73,7 @@ impl Mote {
 
 		// parse datetime
 		let datetime = Datetime::from_str( msg.datetime.as_ref());
-		if datetime.is_none() { return None;}
+		if datetime.is_err() { return None;}
 		let datetime = datetime.unwrap();
 
 		// get data, sig

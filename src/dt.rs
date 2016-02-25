@@ -1,8 +1,10 @@
 // library uses
 use std::fmt;
 use time::now_utc;
+use std::str::FromStr;
 
 // local uses
+use self::ParseDatetimeError::*;
 
 /// class that defines a date
 #[derive( Clone, Copy, Hash)]
@@ -43,7 +45,40 @@ impl Datetime {
 			day: now.tm_yday as u16,
 			milli: milli}}
 
-	pub fn from_str( string : &str) -> Option<Datetime> {
+	pub fn to_bytes( &self) -> Vec<u8> {
+		let mut result = Vec::new();
+		result.push( ( self.year >> 8) as u8);
+		result.push( ( self.year >> 0) as u8);
+		result.push( ( self.day >> 8) as u8);
+		result.push( ( self.day >> 0) as u8);
+		result.push( ( self.milli >> 24) as u8);
+		result.push( ( self.milli >> 16) as u8);
+		result.push( ( self.milli >> 08) as u8);
+		result.push( ( self.milli >> 00) as u8);
+		return result;}
+}
+
+pub enum ParseDatetimeError {
+	YearParseFail,
+	DayParseFail,
+	MilliParseFail,
+}
+impl fmt::Debug for ParseDatetimeError {
+	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
+		let err_string = match self {
+				&YearParseFail => {
+					"Failed to parse year"},
+				&DayParseFail => {
+					"Failed to parse day"},
+				&MilliParseFail => {
+					"Failed to parse milli"}};
+		write!( formatter, "{}", err_string)}
+}
+
+impl FromStr for Datetime {
+	type Err = ParseDatetimeError;
+
+	fn from_str( string: &str) -> Result<Datetime, ParseDatetimeError> {
 		let mut split = string.split( '.');
 
 		// get strings
@@ -52,10 +87,12 @@ impl Datetime {
 		let milli_str = split.next();
 
 		// error check
-		if year_str.is_none() ||
-			day_str.is_none() ||
-			milli_str.is_none() {
-				return None;}
+		if year_str.is_none() {
+			return Err( YearParseFail);}
+		if day_str.is_none() {
+			return Err( DayParseFail);}
+		if milli_str.is_none() {
+			return Err( MilliParseFail);}
 
 		// unwrap
 		let year_str = year_str.unwrap();
@@ -71,10 +108,12 @@ impl Datetime {
 			u32::from_str_radix( milli_str, 16).ok();
 
 		// error check
-		if year.is_none() ||
-			day.is_none() ||
-			milli.is_none() {
-				return None;}
+		if year.is_none() {
+			return Err( YearParseFail);}
+		if day.is_none() {
+			return Err( DayParseFail);}
+		if milli.is_none() {
+			return Err( MilliParseFail);}
 
 		// unwrap
 		let year = year.unwrap();
@@ -82,19 +121,7 @@ impl Datetime {
 		let milli = milli.unwrap();
 
 		// return
-		Some( Datetime::new( year, day, milli))}
-
-	pub fn to_bytes( &self) -> Vec<u8> {
-		let mut result = Vec::new();
-		result.push( ( self.year >> 8) as u8);
-		result.push( ( self.year >> 0) as u8);
-		result.push( ( self.day >> 8) as u8);
-		result.push( ( self.day >> 0) as u8);
-		result.push( ( self.milli >> 24) as u8);
-		result.push( ( self.milli >> 16) as u8);
-		result.push( ( self.milli >> 08) as u8);
-		result.push( ( self.milli >> 00) as u8);
-		return result;}
+		Ok( Datetime::new( year, day, milli))}
 }
 
 impl fmt::Display for Datetime {
