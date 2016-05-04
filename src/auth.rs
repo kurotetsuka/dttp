@@ -143,6 +143,11 @@ impl fmt::Display for Auth {
 			( None, None, None, None) =>
 				write!( formatter, ":null:"),}}
 }
+impl fmt::Debug for Auth {
+	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
+		write!( formatter, "[{}]", self)}
+}
+
 impl clone::Clone for Auth {
 	fn clone( &self) -> Auth {
 		Auth {

@@ -129,3 +129,9 @@ impl fmt::Display for Datetime {
 		write!( formatter, "{:03x}.{:03x}.{:07x}",
 			self.year, self.day, self.milli)}
 }
+
+impl fmt::Debug for Datetime {
+	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
+		write!( formatter, "{:03x}.{:03x}.{:07x}",
+			self.year, self.day, self.milli)}
+}

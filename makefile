@@ -21,6 +21,12 @@ test: test-keybase
 test-all:
 	cargo test
 
+test-client:
+	cargo run --bin test_client
+
+test-daemon:
+	cargo run --bin test_daemon
+
 test-keybase:
 	cargo run --bin test_keybase
 

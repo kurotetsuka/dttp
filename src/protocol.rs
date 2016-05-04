@@ -9,14 +9,6 @@ use regex::Regex;
 use self::Command::*;
 use self::Response::*;
 
-
-pub enum MoteSpec {
-	ShortHash( u16),
-	LongHash( u64),
-	Meta( String),
-	Auth( String),
-}
-
 pub enum Command {
 	Hello( String),
 	HaveDec( u64),

@@ -13,6 +13,9 @@ use auth::*;
 use consts::*;
 use dt::*;
 
+// modules
+pub mod spec;
+
 /// a unit of signed communication
 #[derive( Clone, Hash)]
 pub struct Mote {
@@ -94,6 +97,8 @@ impl Mote {
 		let mut hasher = SipHasher::new_with_keys( key0, key1);
 		self.hash( &mut hasher);
 		hasher.finish()}
+	pub fn hash_tth( &self) -> [u8; 24] {
+		[ 0x00; 24]}
 
 	pub fn to_msg( &self) -> MoteMsg {
 		MoteMsg {
@@ -105,13 +110,22 @@ impl Mote {
 			sig: self.sig.clone(),}}
 }
 
+impl fmt::Display for Mote {
+	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
+		write!( formatter, "{{ dttpv: \"{}\",\n", self.dttpv).and(
+		write!( formatter, "  auth: \"{}\",\n", self.auth).and(
+		write!( formatter, "  meta: \"{:?}\",\n", self.meta).and(
+		write!( formatter, "  dt: {},\n", self.datetime).and(
+		write!( formatter, "  data: {:?},\n", self.data).and(
+		write!( formatter, "  sig: {:?}}}", self.sig))))))}
+}
 impl fmt::Debug for Mote {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		write!( formatter,
 			"[dttpv-{} \"{}\" {:?} {} {:?} {:?}]",
-			self.dttpv, self.auth, self.meta, self.datetime,
-			self.data,
-			self.sig,)}
+			self.dttpv, self.auth,
+			self.meta, self.datetime,
+			self.data, self.sig,)}
 }
 
 /// a mote, prepared for encoding

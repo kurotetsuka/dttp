@@ -1,22 +1,22 @@
 ## current
  - 
- - 
 
 ## queue
- - gpg key.sign()
- - gpg key.verify()
- - sign / verify tests
- - switch to serde serialization
+ - proper keybase session management
  - 
 
 ## future
- - 
+ - use tiger tree hash
+ - gpg
+ - implement mageon notation type
+ - switch to serde serialization?
  - 
 
 ## long-term
- - support better pub-key crypto protocol
+ - support better public key crypto protocol
  - 
 
 ## done
+ - keybase sign / verify
  - 
  - 
