@@ -36,4 +36,5 @@ fn main(){
 		println!( "sig_check: {:?}", crypto.verify( &mote));}
 
 	//exit
-	exit( 0);}
+	exit( 0);
+}

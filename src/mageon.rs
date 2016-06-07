@@ -50,7 +50,7 @@ peg! mag_grammar( r#"
 			match_str.to_string() }
 		/ quot_str
 	arg_obj -> Value
-		= json {?
+		= json_obj {?
 			let result : serde_json::Result<Value> = match_str.parse();
 			if let Ok( obj) = result {
 				Ok( obj)}
@@ -87,29 +87,9 @@ mod mag_grammar_err {
 }
 
 impl FromStr for Mageon {
+	// todo: create custom ( more usable ) error type
 	type Err = mag_grammar::ParseError;
 	fn from_str( string: &str) ->
 			Result<Mageon, mag_grammar::ParseError> {
 		mag_grammar::mageon( string)}
-}
-
-#![test]
-fn test_mageon(){
-	let tests = vec![
-		r#"hello: { "asdf": 1}."#,
-		r#"there: [ 1, 2, 3, 4]."#,
-		r#"aly?: 1."#,
-		r#"aly!: 1."#,
-		r#"aly: hi, [ 1, "hi"]."#,
-		r#"aly: hi, "hi"."#,
-		r#"aly?"#,
-		r#"aly!"#,
-		r#"aly."#,];
-
-	for test in tests {
-		println!( "parsing <{}>", test);
-		println!( "result: {:?}\n", test.parse::<Mageon>());}
-
-	let x : Mageon = "hi!: 1, 2, 3.".parse().unwrap();
-	println!( "x: {:?}", x);
 }

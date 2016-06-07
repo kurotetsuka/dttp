@@ -25,6 +25,7 @@ pub mod consts;
 pub mod crypto;
 pub mod dt;
 pub mod hub;
+pub mod mageon;
 pub mod mote;
 pub mod prelude;
 pub mod protocol;
