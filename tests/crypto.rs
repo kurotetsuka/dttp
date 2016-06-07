@@ -1,6 +1,7 @@
 extern crate dttp;
+
 // libdttp uses
-use dttp::crypto::keybase;
+//use dttp::crypto::keybase;
 
 #[test]
 fn test_keybase(){}
