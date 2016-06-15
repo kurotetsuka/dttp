@@ -1,5 +1,6 @@
 // library uses
 use std::fmt;
+use std::str::FromStr;
 
 // local uses
 use auth::*;
@@ -28,6 +29,18 @@ impl MoteSpec {
 		if let Some( _datetime) = self.datetime.as_ref() {}
 		let result = [ 0x00; 4];
 		result}
+}
+
+pub enum MoteSpecParseError {
+	UnknownError,
+}
+
+impl FromStr for MoteSpec {
+	// todo: create custom ( more usable ) error type
+	type Err = MoteSpecParseError;
+	fn from_str( _string: &str) ->
+			Result<MoteSpec, MoteSpecParseError> {
+		Err( MoteSpecParseError::UnknownError)}
 }
 
 impl fmt::Display for MoteSpec {

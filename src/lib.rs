@@ -2,10 +2,14 @@
 #![crate_type="lib"]
 
 // features and plugins
-#![feature( custom_derive)]
-#![feature( plugin)]
-#![plugin( peg_syntax_ext)]
-#![plugin( serde_macros)]
+#![feature(
+	plugin,
+	custom_derive,
+	slice_patterns,
+	advanced_slice_patterns)]
+#![plugin(
+	peg_syntax_ext,
+	serde_macros)]
 
 // library imports
 extern crate arcmutex;

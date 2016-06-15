@@ -1,26 +1,35 @@
 // library uses
 use std::fmt;
+use std::str::FromStr;
 
 use rustc_serialize::json;
 use rustc_serialize::json::Json;
 use regex::Regex;
 
 // local uses
+use mageon::*;
+use mote::spec::*;
 use self::Command::*;
 use self::Response::*;
 
 pub enum Command {
 	Version( String),
 	Opt( Json),
-	HaveDec( u64),
-	HaveReq( u64),
-	Get( u64),
-	Fetch( u64),
-	Want( u64),
+	HaveDec( MoteSpec),
+	HaveReq( MoteSpec),
+	Get( MoteSpec),
+	Fetch( MoteSpec),
+	Want( MoteSpec),
 	Take( Json),
 	SelfDec( String),
 	OthersReq,
 	Profile( String),
+}
+
+pub enum CommandParseError {
+	GrammarError,
+	InvalidArgsError,
+	UnknownError,
 }
 
 pub enum Response {
@@ -32,23 +41,53 @@ pub enum Response {
 	Error( String, String),
 }
 
+pub enum ResponseParseErr {
+	GrammarError,
+	InvalidArgsError,
+	UnknownError,
+}
+
+impl FromStr for Command {
+	// todo: create custom ( more usable ) error type
+	type Err = CommandParseError;
+	fn from_str( string: &str) -> Result<Command, CommandParseError> {
+		let mageon = string.parse::<Mageon>();
+		if mageon.is_err() {
+			return Err( CommandParseError::GrammarError);}
+		let mageon = mageon.unwrap();
+
+		let cmd = mageon.verb.clone();
+		match cmd.as_ref() {
+			"get?" => Command::parse_get( mageon),
+			_ => Err( CommandParseError::UnknownError) }}
+}
+
 impl Command {
-	pub fn from_str( string: &str) -> Option<Command> {
-		// match get request
-		let cmd = "get?:";
-		if string.starts_with( cmd) {
-			return Command::parse_get( string);}
+	fn parse_get( mag: Mageon) -> Result<Command, CommandParseError> {
+		if mag.args.len() != 1 {
+			return Err( CommandParseError::GrammarError);}
+		if let MagArg::Str( ref spec_str) = mag.args[0] {
+			let spec = spec_str.parse::<MoteSpec>();
+			if let Ok( spec) = spec {
+				return Ok( Get( spec))}
+			else {
+				return Err( CommandParseError::InvalidArgsError);}}
+		else {
+			return Err( CommandParseError::GrammarError);}
 
-		// fallback
-		return None;}
-
-	fn parse_get( _string: &str) -> Option<Command> { None}
-	/*fn parse_have( _string: &str) -> Option<Command> { None}
-	fn parse_have_req( _string: &str) -> Option<Command> { None}
-	fn parse_hello( _string: &str) -> Option<Command> { None}
-	fn parse_others( _string: &str) -> Option<Command> { None}
-	fn parse_take( _string: &str) -> Option<Command> { None}
-	fn parse_want( _string: &str) -> Option<Command> { None}*/
+		Err( CommandParseError::UnknownError) }
+	/*fn parse_have( _string: &str) -> Result<Command, CommandParseError> {
+		Err( CommandParseError::UnknownError) }
+	fn parse_have_req( _string: &str) -> Result<Command, CommandParseError> {
+		Err( CommandParseError::UnknownError) }
+	fn parse_hello( _string: &str) -> Result<Command, CommandParseError> {
+		Err( CommandParseError::UnknownError) }
+	fn parse_others( _string: &str) -> Result<Command, CommandParseError> {
+		Err( CommandParseError::UnknownError) }
+	fn parse_take( _string: &str) -> Result<Command, CommandParseError> {
+		Err( CommandParseError::UnknownError) }
+	fn parse_want( _string: &str) -> Result<Command, CommandParseError> {
+		Err( CommandParseError::UnknownError) }*/
 }
 impl fmt::Display for Command {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {

@@ -1,4 +1,3 @@
-
 // library uses
 use std::str::FromStr;
 use serde_json::Value;
@@ -24,7 +23,7 @@ peg! mag_grammar( r#"
 
 	#[pub]
 	mageon -> Mageon
-		= v: verb ":" WS a:args WS "." {
+		= v:verb ":" WS a:args WS "." {
 			Mageon { verb: v, args: a}}
 		/ v:verb_solo {
 			Mageon { verb: v, args: vec![]}}

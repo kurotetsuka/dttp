@@ -9,7 +9,6 @@ clean:
 # commands
 build:
 	cargo build
-
 update:
 	cargo update
 
@@ -17,18 +16,17 @@ ci:
 	make-ci build $$(find src -name *.rs)
 
 # tests
-test: test-keybase
+test: test-protocol
 test-all:
 	cargo test
 
 test-client:
 	cargo run --bin test_client
-
 test-daemon:
 	cargo run --bin test_daemon
-
-test-keybase:
-	cargo run --bin test_keybase
-
 test-gpg:
 	cargo test --test gpg
+test-keybase:
+	cargo run --bin test_keybase
+test-mageon:
+	cargo run --bin test_mageon
