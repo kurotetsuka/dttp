@@ -7,7 +7,7 @@ use rustc_serialize::json::Json;
 use regex::Regex;
 
 // local uses
-use mageon::*;
+use mageon::{self, Mageon, MagArg};
 use mote::spec::*;
 use self::Command::*;
 use self::Response::*;
@@ -27,9 +27,10 @@ pub enum Command {
 }
 
 pub enum CommandParseError {
-	GrammarError,
-	InvalidArgsError,
-	UnknownError,
+	Grammar( mageon::ParseError),
+	InvalidCmd,
+	InvalidArgs,
+	Unknown,
 }
 
 pub enum Response {
@@ -41,53 +42,55 @@ pub enum Response {
 	Error( String, String),
 }
 
-pub enum ResponseParseErr {
-	GrammarError,
-	InvalidArgsError,
-	UnknownError,
+pub enum ResponseParseError {
+	Grammar( mageon::ParseError),
+	InvalidResp,
+	InvalidArgs,
+	Unknown,
 }
 
 impl FromStr for Command {
 	// todo: create custom ( more usable ) error type
 	type Err = CommandParseError;
 	fn from_str( string: &str) -> Result<Command, CommandParseError> {
+		// parse mageon
 		let mageon = string.parse::<Mageon>();
-		if mageon.is_err() {
-			return Err( CommandParseError::GrammarError);}
+		if let Err( err) = mageon {
+			return Err( CommandParseError::Grammar( err));}
 		let mageon = mageon.unwrap();
 
 		let cmd = mageon.verb.clone();
 		match cmd.as_ref() {
 			"get?" => Command::parse_get( mageon),
-			_ => Err( CommandParseError::UnknownError) }}
+			_ => Err( CommandParseError::InvalidCmd) }}
 }
 
 impl Command {
 	fn parse_get( mag: Mageon) -> Result<Command, CommandParseError> {
 		if mag.args.len() != 1 {
-			return Err( CommandParseError::GrammarError);}
+			return Err( CommandParseError::InvalidArgs);}
 		if let MagArg::Str( ref spec_str) = mag.args[0] {
 			let spec = spec_str.parse::<MoteSpec>();
 			if let Ok( spec) = spec {
 				return Ok( Get( spec))}
 			else {
-				return Err( CommandParseError::InvalidArgsError);}}
+				return Err( CommandParseError::InvalidArgs);}}
 		else {
-			return Err( CommandParseError::GrammarError);}
+			return Err( CommandParseError::InvalidArgs);}
 
-		Err( CommandParseError::UnknownError) }
+		Err( CommandParseError::Unknown) }
 	/*fn parse_have( _string: &str) -> Result<Command, CommandParseError> {
-		Err( CommandParseError::UnknownError) }
+		Err( CommandParseError::Unknown) }
 	fn parse_have_req( _string: &str) -> Result<Command, CommandParseError> {
-		Err( CommandParseError::UnknownError) }
+		Err( CommandParseError::Unknown) }
 	fn parse_hello( _string: &str) -> Result<Command, CommandParseError> {
-		Err( CommandParseError::UnknownError) }
+		Err( CommandParseError::Unknown) }
 	fn parse_others( _string: &str) -> Result<Command, CommandParseError> {
-		Err( CommandParseError::UnknownError) }
+		Err( CommandParseError::Unknown) }
 	fn parse_take( _string: &str) -> Result<Command, CommandParseError> {
-		Err( CommandParseError::UnknownError) }
+		Err( CommandParseError::Unknown) }
 	fn parse_want( _string: &str) -> Result<Command, CommandParseError> {
-		Err( CommandParseError::UnknownError) }*/
+		Err( CommandParseError::Unknown) }*/
 }
 impl fmt::Display for Command {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {

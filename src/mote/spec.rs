@@ -31,6 +31,20 @@ impl MoteSpec {
 		result}
 }
 
+/*peg! mag_grammar( r#"
+	use super::*;
+	use auth::*;
+
+	#[pub]
+	spec -> MoteSpec
+		= hash? auth? meta? dt?
+
+	hash -> Vec<u8> = hex_byte+
+	hex_byte -> u8 = [0-9a-f]{2} { match_str.parse();}
+
+	auth -> Auth
+"#);*/
+
 pub enum MoteSpecParseError {
 	UnknownError,
 }

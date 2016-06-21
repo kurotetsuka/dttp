@@ -2,6 +2,10 @@
 use std::str::FromStr;
 use serde_json::Value;
 
+// re-exports
+pub use self::grammar::ParseResult as ParseResult;
+pub use self::grammar::ParseError as ParseError;
+
 #[derive( Debug)]
 pub struct Mageon {
 	pub verb: String,
@@ -15,9 +19,9 @@ pub enum MagArg {
 	Vec( Vec< MagArg>),
 }
 
-peg! mag_grammar( r#"
+peg! grammar( r#"
 	use super::*;
-	use super::mag_grammar_err::*;
+	use super::grammar_err::*;
 	use serde_json;
 	use serde_json::Value;
 
@@ -47,48 +51,47 @@ peg! mag_grammar( r#"
 	arg_str -> String
 		= [a-zA-Z0-9:_\-]+ {
 			match_str.to_string() }
-		/ quot_str
+		/ quot_str {
+			// remove the quotes, preserve the rest 
+			match_str[ 1..match_str.len()-1].replace( "\\\"", "\"")}
 	arg_obj -> Value
 		= json_obj {?
-			let result : serde_json::Result<Value> = match_str.parse();
+			let result = match_str.parse::<Value>();
 			if let Ok( obj) = result {
 				Ok( obj)}
-			else { Err( ERR_PARSE_JSON)} }
+			else {
+				Err( ERR_PARSE_JSON)}}
 	arg_vec -> Vec<MagArg>
 		= "[" WS vec:args_maybe WS "]" {
 			vec }
 	args_maybe -> Vec<MagArg>
 		= arg ** ( WS "," WS )
 
-	quot_str -> String
-		= "\"" ( [^\\\"]+ ) ++ "\\\"" "\"" {
-			// remove the quotes, preserve the rest 
-			match_str[ 1..match_str.len()-1].replace( "\\\"", "\"")}
+	quot_str = "\"" ( !( "\\\"" / "\"" ) . ) ++ "\\\"" "\"" 
 
 	WS = [ \t\r\n]*
 
 	// serde will check json properly when parsing, so we only need
-	// check enough to guarantee we arent interrupting a well-formed mageon
+	// check enough to guarantee we aren't interrupting a well-formed mageon
 	json =
 		json_str /
 		json_obj /
 		json_vec /
 		json_other
-	json_str = "\"" ( [^\\\"]+ ) ++ "\\\"" "\""
+	json_str = quot_str
 	json_obj = "{" WS json_obj_entry ++ ( WS "," WS ) WS "}"
 	json_obj_entry = quot_str WS ":" WS json
 	json_vec = "[" WS json WS ( "," json )* ","? "]"
 	json_other = [a-zA-Z0-9+\-_\.]+
 "#);
 
-mod mag_grammar_err {
+mod grammar_err {
 	pub static ERR_PARSE_JSON : &'static str = "json parse failed";
 }
 
 impl FromStr for Mageon {
 	// todo: create custom ( more usable ) error type
-	type Err = mag_grammar::ParseError;
-	fn from_str( string: &str) ->
-			Result<Mageon, mag_grammar::ParseError> {
-		mag_grammar::mageon( string)}
+	type Err = ParseError;
+	fn from_str( string: &str) -> ParseResult<Mageon> {
+		grammar::mageon( string)}
 }

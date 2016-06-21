@@ -70,8 +70,8 @@ impl Mote {
 		let meta = msg.meta.clone();
 
 		// parse auth
-		let auth = Auth::from_str( msg.auth.as_ref());
-		if auth.is_none() { return None;}
+		let auth = msg.auth.parse::<Auth>();
+		if auth.is_err() { return None;}
 		let auth = auth.unwrap();
 
 		// parse datetime
@@ -113,8 +113,8 @@ impl Mote {
 impl fmt::Display for Mote {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		write!( formatter, "{{ dttpv: \"{}\",\n", self.dttpv).and(
-		write!( formatter, "  auth: \"{}\",\n", self.auth).and(
 		write!( formatter, "  meta: \"{:?}\",\n", self.meta).and(
+		write!( formatter, "  auth: \"{}\",\n", self.auth).and(
 		write!( formatter, "  dt: {},\n", self.datetime).and(
 		write!( formatter, "  data: {:?},\n", self.data).and(
 		write!( formatter, "  sig: {:?}}}", self.sig))))))}
@@ -122,9 +122,9 @@ impl fmt::Display for Mote {
 impl fmt::Debug for Mote {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		write!( formatter,
-			"[dttpv-{} \"{}\" {:?} {} {:?} {:?}]",
-			self.dttpv, self.auth,
-			self.meta, self.datetime,
+			"[dttpv-{} \"{}\" {} {:?} {:?} {:?}]",
+			self.dttpv, self.meta,
+			self.auth, self.datetime,
 			self.data, self.sig,)}
 }
 

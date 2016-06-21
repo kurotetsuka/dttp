@@ -1,9 +1,11 @@
 // library uses
 use std::fmt;
 use std::clone;
-use regex::Regex;
+use std::str::FromStr;
 
-// local uses
+// re-exports
+pub use self::grammar::ParseResult as ParseResult;
+pub use self::grammar::ParseError as ParseError;
 
 /// class that defines the signing agent of a mote
 #[derive( Hash, PartialEq, Eq)]
@@ -39,41 +41,59 @@ impl Auth {
 			addr: Some( "kurotetsuka@gmail.com".to_string()),
 			id: Some( 0x0a1a20c0),
 		}}
-
-	// this needs to be fixed to accept comments
-	pub fn from_str( string: &str) -> Option<Auth> {
-		// regex with user, addr, and key
-		let regex = Regex::new(
-			r"(\S+) <(\S+@\S+)> (\[[:xdigit:]{8}\])");
-		if regex.is_err() { return None;}
-		let regex = regex.unwrap();
-
-		// get captures
-		let cap = regex.captures( string);
-		if cap.is_none() { return None;}
-		let cap = cap.unwrap();
-		if cap.len() < 4 { return None;}
-
-		// parse user
-		let user = cap.at( 1);
-		if user.is_none() { return None;}
-		let user = user.unwrap().to_string();
-		// parse addr
-		let addr = cap.at( 2);
-		if addr.is_none() { return None;}
-		let addr = addr.unwrap().to_string();
-		// parse id
-		let id_str = cap.at( 3);
-		if id_str.is_none() { return None;}
-		let id_str = id_str.unwrap();
-		let id : Option<u32> =
-			u32::from_str_radix( id_str, 16).ok();
-		if id.is_none() { return None;}
-		let id = id.unwrap();
-
-		Some( Auth::new(
-			Some( user), None, Some( addr), Some( id)))}
 }
+
+pub enum AuthParseError {
+	GrammarError,
+	UnknownError,
+}
+
+peg! grammar( r#"
+	use super::*;
+	use super::gammar_err::*;
+
+	#[pub]
+	auth -> Auth
+		= user:(user?) comment:(comment?) addr:(addr?) id:(id?) {
+			Auth::new( user, comment, addr, id)}
+
+	// idk the proper pgp grammar, so i'm just guessing for now
+	// todo: look that up, aha
+	user -> String
+		= text 
+	comment -> String 
+		= "(" text:text ")" { text}
+	addr -> String
+		= "<" chars "@" chars ">" {
+			match_str[ 1..match_str.len()-1].to_string()}
+	id -> u32
+		= "[" hex_chars{8} "]" {?
+			let result = match_str[ 1..match_str.len()-1].parse::<u32>();
+			if let Ok( num) = result {
+				Ok( num)}
+			else {
+				Err( ERR_PARSE_NUM)}}
+
+	text -> String = [a-zA-Z0-9 ]+ {
+		match_str.to_string()}
+	chars -> String = [a-zA-Z0-9]+ {
+		match_str.to_string()}
+	hex_chars = [0-9a-f]
+
+	WS = [ ]*
+"#);
+
+mod gammar_err {
+	pub static ERR_PARSE_NUM : &'static str = "u32 parse failed";
+}
+
+impl FromStr for Auth {
+	// todo: create custom ( more usable ) error type
+	type Err = ParseError;
+	fn from_str( string: &str) -> ParseResult<Auth> {
+		grammar::auth( string)}
+}
+
 impl fmt::Display for Auth {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		let self_tuple = (
@@ -141,7 +161,7 @@ impl fmt::Display for Auth {
 					"[{:08x}]",
 					id),
 			( None, None, None, None) =>
-				write!( formatter, ":null:"),}}
+				write!( formatter, ""),}}
 }
 impl fmt::Debug for Auth {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
