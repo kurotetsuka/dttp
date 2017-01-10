@@ -49,38 +49,39 @@ pub enum AuthParseError {
 }
 
 peg! grammar( r#"
-	use super::*;
-	use super::gammar_err::*;
+use super::*;
+use super::gammar_err::*;
 
-	#[pub]
-	auth -> Auth
-		= user:(user?) comment:(comment?) addr:(addr?) id:(id?) {
-			Auth::new( user, comment, addr, id)}
+#[pub]
+auth -> Auth
+	= user:(user?) comment:(comment?) addr:(addr?) id:(id?) {
+		Auth::new( user, comment, addr, id)}
 
-	// idk the proper pgp grammar, so i'm just guessing for now
-	// todo: look that up, aha
-	user -> String
-		= text 
-	comment -> String 
-		= "(" text:text ")" { text}
-	addr -> String
-		= "<" chars "@" chars ">" {
-			match_str[ 1..match_str.len()-1].to_string()}
-	id -> u32
-		= "[" hex_chars{8} "]" {?
-			let result = match_str[ 1..match_str.len()-1].parse::<u32>();
-			if let Ok( num) = result {
-				Ok( num)}
-			else {
-				Err( ERR_PARSE_NUM)}}
+// idk the proper pgp grammar, so i'm just guessing for now
+// todo: look that up, aha
 
-	text -> String = [a-zA-Z0-9 ]+ {
-		match_str.to_string()}
-	chars -> String = [a-zA-Z0-9]+ {
-		match_str.to_string()}
-	hex_chars = [0-9a-f]
+user -> String
+	= text
+comment -> String 
+	= "(" t:text ")" { t}
+addr -> String
+	= "<" s:$(chars "@" chars) ">"
+	{ s.to_string() }
+id -> u32
+	= "[" s:$(hex_chars*<8>) "]"
+	{?
+		if let Ok( num) = s.parse::<u32>() {
+			Ok( num)}
+		else {
+			Err( ERR_PARSE_NUM)}}
 
-	WS = [ ]*
+text -> String
+	= s:$([a-zA-Z0-9 ]+)
+	{ s.to_string()}
+chars = [a-zA-Z0-9]+
+hex_chars = [0-9a-f]
+
+WS = [ ]*
 "#);
 
 mod gammar_err {

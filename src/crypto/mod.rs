@@ -1,5 +1,4 @@
 // library uses
-//use std::fmt;
 //use rand::Rng;
 
 // modules

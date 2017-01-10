@@ -32,21 +32,21 @@ impl MoteSpec {
 }
 
 /*peg! mag_grammar( r#"
-	use super::*;
-	use auth::*;
+use super::*;
+use auth::*;
 
-	#[pub]
-	spec -> MoteSpec
-		= hash? auth? meta? dt?
+#[pub]
+spec -> MoteSpec
+	= hash? auth? meta? dt?
 
-	hash -> Vec<u8> = hex_byte+
-	hex_byte -> u8 = [0-9a-f]{2} { match_str.parse();}
+hash -> Vec<u8> = hex_byte+
+hex_byte -> u8 = [0-9a-f]{2} { match_str.parse();}
 
-	auth -> Auth
+auth -> Auth
 "#);*/
 
 pub enum MoteSpecParseError {
-	UnknownError,
+	Unknown,
 }
 
 impl FromStr for MoteSpec {
@@ -54,7 +54,7 @@ impl FromStr for MoteSpec {
 	type Err = MoteSpecParseError;
 	fn from_str( _string: &str) ->
 			Result<MoteSpec, MoteSpecParseError> {
-		Err( MoteSpecParseError::UnknownError)}
+		Err( MoteSpecParseError::Unknown)}
 }
 
 impl fmt::Display for MoteSpec {
@@ -114,4 +114,11 @@ impl fmt::Debug for MoteSpec {
 				write!( formatter, "-").ok();}}
 		// closing
 		write!( formatter, "]")}
+}
+
+impl fmt::Debug for MoteSpecParseError {
+	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
+		// opening
+		match self {
+			&MoteSpecParseError::Unknown => write!( formatter, "err_unknown")}}
 }

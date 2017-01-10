@@ -8,8 +8,7 @@
 	slice_patterns,
 	advanced_slice_patterns)]
 #![plugin(
-	peg_syntax_ext,
-	serde_macros)]
+	peg_syntax_ext)]
 
 // library imports
 extern crate arcmutex;
@@ -17,6 +16,8 @@ extern crate gpgme;
 extern crate rand;
 extern crate regex;
 extern crate rustc_serialize;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
 extern crate time;
 

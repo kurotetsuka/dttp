@@ -30,3 +30,5 @@ test-keybase:
 	cargo run --bin test_keybase
 test-mageon:
 	cargo run --bin test_mageon
+test-protocol:
+	cargo run --bin test_protocol

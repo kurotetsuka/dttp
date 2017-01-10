@@ -2,32 +2,34 @@
 use std::fmt;
 use std::str::FromStr;
 
-use rustc_serialize::json;
-use rustc_serialize::json::Json;
-use regex::Regex;
+use serde_json;
+use serde_json::Value;
 
 // local uses
-use mageon::{self, Mageon, MagArg};
 use mote::spec::*;
 use self::Command::*;
 use self::Response::*;
 
+// re-exports
+pub use self::grammar::ParseResult as ParseResult;
+pub use self::grammar::ParseError as ParseError;
+
 pub enum Command {
 	Version( String),
-	Opt( Json),
+	Opt( Value),
 	HaveDec( MoteSpec),
 	HaveReq( MoteSpec),
 	Get( MoteSpec),
 	Fetch( MoteSpec),
 	Want( MoteSpec),
-	Take( Json),
+	Take( Value),
 	SelfDec( String),
 	OthersReq,
 	Profile( String),
 }
 
 pub enum CommandParseError {
-	Grammar( mageon::ParseError),
+	Grammar( ParseError),
 	InvalidCmd,
 	InvalidArgs,
 	Unknown,
@@ -35,63 +37,167 @@ pub enum CommandParseError {
 
 pub enum Response {
 	Okay,
-	OkayResult( Json),
+	OkayResult( Value),
 	Affirm,
-	AffirmResult( Json),
+	AffirmResult( Value),
 	Deny,
 	Error( String, String),
 }
 
 pub enum ResponseParseError {
-	Grammar( mageon::ParseError),
+	Grammar( ParseError),
 	InvalidResp,
 	InvalidArgs,
 	Unknown,
 }
 
-impl FromStr for Command {
-	// todo: create custom ( more usable ) error type
-	type Err = CommandParseError;
-	fn from_str( string: &str) -> Result<Command, CommandParseError> {
-		// parse mageon
-		let mageon = string.parse::<Mageon>();
-		if let Err( err) = mageon {
-			return Err( CommandParseError::Grammar( err));}
-		let mageon = mageon.unwrap();
+pub type CommandParseResult = Result<Command,CommandParseError>;
+pub type ResponseParseResult = Result<Response,ResponseParseError>;
 
-		let cmd = mageon.verb.clone();
-		match cmd.as_ref() {
-			"get?" => Command::parse_get( mageon),
-			_ => Err( CommandParseError::InvalidCmd) }}
-}
+peg! grammar(r#"
+use super::*;
+use super::grammar_err::*;
+use serde_json::Value;
 
-impl Command {
-	fn parse_get( mag: Mageon) -> Result<Command, CommandParseError> {
-		if mag.args.len() != 1 {
-			return Err( CommandParseError::InvalidArgs);}
-		if let MagArg::Str( ref spec_str) = mag.args[0] {
-			let spec = spec_str.parse::<MoteSpec>();
-			if let Ok( spec) = spec {
-				return Ok( Get( spec))}
-			else {
-				return Err( CommandParseError::InvalidArgs);}}
+// commands
+#[pub]
+command -> Command
+	= version
+	/ opt
+	/ have_dec
+	/ have_req
+	/ get
+	/ fetch
+	/ want
+	/ take
+	/ self_dec
+	/ others_req
+	/ profile
+
+version -> Command
+	= "dttpv:" arg:arg_str "."
+	{ Command::Version( arg) }
+opt -> Command
+	= "opt:" arg:arg_json "."
+	{ Command::Opt( arg) }
+have_dec -> Command
+	= "have:" arg:mote_spec "."
+	{ Command::HaveDec( arg) }
+have_req -> Command
+	= "have?:" arg:mote_spec "."
+	{ Command::HaveReq( arg) }
+get -> Command
+	= "get:" arg:mote_spec "."
+	{ Command::Get( arg) }
+fetch -> Command
+	= "fetch:" arg:mote_spec "."
+	{ Command::Fetch( arg) }
+want -> Command
+	= "want?:" arg:mote_spec "."
+	{ Command::Want( arg) }
+take -> Command
+	= "take:" arg:arg_json "."
+	{ Command::Take( arg) }
+self_dec -> Command
+	= "self:" arg:arg_str "."
+	{ Command::SelfDec( arg) }
+others_req -> Command
+	= "others?"
+	{ Command::OthersReq }
+profile -> Command
+	= "profile:" arg:arg_str "."
+	{ Command::Profile( arg) }
+
+// responses
+#[pub]
+response -> Response
+	= okay
+	/ okay_result
+	/ affirm
+	/ affirm_result
+	/ deny
+	/ error
+
+okay -> Response
+	= "ok."
+	{ Okay }
+okay_result -> Response
+	= "ok:" arg:arg_json "."
+	{ OkayResult( arg) }
+affirm -> Response
+	= "yes:" arg:arg_json "."
+	{ Affirm }
+affirm_result -> Response
+	= "yes:" arg:arg_json "."
+	{ AffirmResult( arg) }
+deny -> Response
+	= "no:" arg:arg_json "."
+	{ Deny }
+error -> Response
+	= "error:" arg0:arg_str "," arg1:arg_str "."
+	{ Error( arg0, arg1) }
+
+
+// args
+
+mote_spec -> MoteSpec
+	= s:$(hash)
+	{ s.parse().unwrap() }
+
+arg_json -> Value
+	= s:$(json_obj)
+	{?
+		let result = s.parse::<Value>();
+		if let Ok( obj) = result {
+			Ok( obj)}
 		else {
-			return Err( CommandParseError::InvalidArgs);}
+			Err( ERR_INVALID_JSON)}}
+arg_str -> String
+	= s:$([a-zA-Z0-9:_\-]+)
+	{ s.to_string() }
+	/ "\"" s:$( ( !( "\\\"" / "\"" ) . ) ** "\\\"" ) "\""
+	{ // remove the quotes, preserve the rest 
+		s.replace( "\\\"", "\"")}
+quot_str = "\"" ( !( "\\\"" / "\"" ) . ) ** "\\\"" "\""
 
-		Err( CommandParseError::Unknown) }
-	/*fn parse_have( _string: &str) -> Result<Command, CommandParseError> {
-		Err( CommandParseError::Unknown) }
-	fn parse_have_req( _string: &str) -> Result<Command, CommandParseError> {
-		Err( CommandParseError::Unknown) }
-	fn parse_hello( _string: &str) -> Result<Command, CommandParseError> {
-		Err( CommandParseError::Unknown) }
-	fn parse_others( _string: &str) -> Result<Command, CommandParseError> {
-		Err( CommandParseError::Unknown) }
-	fn parse_take( _string: &str) -> Result<Command, CommandParseError> {
-		Err( CommandParseError::Unknown) }
-	fn parse_want( _string: &str) -> Result<Command, CommandParseError> {
-		Err( CommandParseError::Unknown) }*/
+hash -> Vec<u8> = hex_byte+
+hex_byte -> u8 = s:$([0-9a-f]*<2>) { s.parse().unwrap()}
+
+// serde will check json properly when parsing, so we only need
+// check enough to guarantee we aren't interrupting a well-formed mageon
+json =
+	json_str /
+	json_obj /
+	json_vec /
+	json_other
+json_str = quot_str
+json_obj = "{" WS json_obj_entry ++ ( WS "," WS ) WS "}"
+json_obj_entry = quot_str WS ":" WS json
+json_vec = "[" WS json WS ( "," json )* ","? "]"
+json_other = [a-zA-Z0-9+\-_\.]+
+
+
+WS = [ \t\r\n]*
+"#);
+
+mod grammar_err {
+	//pub static ERR_INVALID_ARGS : &'static str = "err_invalid_args";
+	pub static ERR_INVALID_JSON : &'static str = "err_invalid_json";
+	//pub static ERR_INVALID_VERB : &'static str = "err_invalid_verb";
+	//pub static ERR_UNIMPLEMENTED : &'static str = "err_unimplemented";
+	//pub static ERR_UNKNOWN : &'static str = "err_unknown";
+	//pub static ERR_INVALID : &'static str = "err_invalid";
 }
+
+impl FromStr for Command {
+	type Err = CommandParseError;
+	fn from_str( string: &str) -> CommandParseResult {
+		match grammar::command( string) {
+			Ok( command) => Ok( command),
+			Err( err) => Err( CommandParseError::Grammar( err))}}
+}
+
+impl Command {}
 impl fmt::Display for Command {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		match self {
@@ -117,66 +223,16 @@ impl fmt::Display for Command {
 				write!( formatter, "self:{}.", *hostname),
 			&Take( ref data) =>
 				write!( formatter, "take:{}.",
-					json::encode( data).unwrap()),*/
+					serde_json::to_string( &data).unwrap()),*/
 			_ => write!( formatter, "asdf"),}}
 }
 
 
 impl Response {
-	pub fn from_str( string: &str) -> Option<Response> {
-		// match okay response
-		let res = "ok.";
-		if string.eq( res) {
-			return Some( Okay);}
-
-		// match affirm response
-		let res = "yes.";
-		if string.eq( res) {
-			return Some( Affirm);}
-
-		// match deny response
-		let res = "no.";
-		if string.eq( res) {
-			return Some( Deny);}
-
-		// match okay result response
-		let res = "ok:";
-		if string.starts_with( res) {
-			let regex = Regex::new( r"ok:(.+).").unwrap();
-			let cap = regex.captures( string);
-			if cap.is_none() { return None;}
-			let cap = cap.unwrap();
-
-			// parse json
-			let json_str = cap.at( 1);
-			if json_str.is_none() { return None;}
-			let json_str = json_str.unwrap();
-			let json : Option<Json> = 
-				Json::from_str( json_str).ok();
-			if json.is_none() { return None;}
-			let json = json.unwrap();
-			// return
-			return Some( OkayResult( json));}
-
-		// match error message response
-		let res = "err:";
-		if string.starts_with( res) {
-			let regex = Regex::new( r"err:(.+), (.+).").unwrap();
-			let cap = regex.captures( string);
-			if cap.is_none() { return None;}
-			let cap = cap.unwrap();
-
-			// parse message
-			let code = cap.at( 1);
-			if code.is_none() { return None;}
-			let code = code.unwrap().to_string();
-			let message = cap.at( 1);
-			if message.is_none() { return None;}
-			let message = message.unwrap().to_string();
-			return Some( Error( code, message));}
-
-		// fallback
-		return None;}
+	pub fn from_str( string: &str) -> ResponseParseResult {
+		match grammar::response( string) {
+			Ok( response) => Ok( response),
+			Err( err) => Err( ResponseParseError::Grammar( err))}}
 }
 impl fmt::Display for Response {
 	fn fmt( &self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -185,12 +241,12 @@ impl fmt::Display for Response {
 				write!( formatter, "ok."),
 			&OkayResult( ref data) =>
 				write!( formatter, "ok:{}.",
-					json::encode( data).unwrap()),
+					serde_json::to_string( &data).unwrap()),
 			&Affirm =>
 				write!( formatter, "yes."),
 			&AffirmResult( ref data) =>
 				write!( formatter, "yes:{}.",
-					json::encode( data).unwrap()),
+					serde_json::to_string( &data).unwrap()),
 			&Deny =>
 				write!( formatter, "no."),
 			&Error( ref code, ref message) =>
