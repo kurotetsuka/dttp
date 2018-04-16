@@ -3,12 +3,9 @@
 
 // features and plugins
 #![feature(
-	plugin,
 	custom_derive,
 	slice_patterns,
 	advanced_slice_patterns)]
-#![plugin(
-	peg_syntax_ext)]
 
 // library imports
 extern crate arcmutex;
